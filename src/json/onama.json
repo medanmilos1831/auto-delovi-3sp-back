@@ -1,0 +1,16 @@
+{
+  "headline": "This is a sample headline",
+  "image": "http://localhost:3000/uploads/about/image.jpg",
+  "imageName": "image.jpg",
+  "opis": "This is a sample description for the about section.",
+  "items": [
+    {
+      "value": "Item 1",
+      "label": "Description for item 1"
+    },
+    {
+      "value": "Item 2",
+      "label": "Description for item 2"
+    }
+  ]
+}

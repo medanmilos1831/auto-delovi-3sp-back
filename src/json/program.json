@@ -1,0 +1,33 @@
+{
+  "auto-program": {
+    "naziv": "auto program",
+    "caption": "\"Neque porro quisquam est qui dolorem ipsum quia dolor sit amet, consectetur, adipisci velit...\"",
+    "desc": "dasdas",
+    "slug": "auto-program",
+    "image": "http://localhost:3000/uploads/program/auto-program.jpg",
+    "imageName": "auto-program.jpg",
+    "kategorije": {
+      "filteris": {
+        "slug": "filteris",
+        "naziv": "filteriS",
+        "caption": "dasdas",
+        "desc": "dasdas",
+        "prozivodi": {
+          "dsadasdas": {
+            "naziv": "dsadasdas",
+            "opis": "sdaas",
+            "caption": "dsadas",
+            "cena": "1221213",
+            "kataloski_broj": "qqq",
+            "image": "http://localhost:3000/uploads/product/dsadasdas.webp",
+            "imageName": "dsadasdas.webp",
+            "items": null,
+            "slug": "dsadasdas"
+          }
+        },
+        "image": "http://localhost:3000/uploads/category/filteris.jpg",
+        "imageName": "filteris.jpg"
+      }
+    }
+  }
+}

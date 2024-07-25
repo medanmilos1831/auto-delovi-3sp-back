@@ -1,15 +1,8 @@
 import { Router } from "express";
-import { Category } from "../models/Category";
-import { Program } from "../models/Program";
-import { ProgramCategory } from "../models/ProgramCategory";
-import { Product } from "../models/Product";
-import { sequelize } from "../db";
-import { ProductProgramCategory } from "../models/ProductProgramCategory";
 import slugify from "slugify";
 import { uploadCategory } from "../multer";
-import { ProductCategory } from "../models/ProductCategory";
 const fs = require("fs");
-const path = require("path");
+const filePath = "src/json/program.json";
 
 const categoryRoute = Router();
 
@@ -20,35 +13,45 @@ categoryRoute.post(
     res.send("ok");
   }
 );
-
 categoryRoute.post("/category", async (req, res) => {
   try {
+    const jsonData = fs.readFileSync(filePath, "utf8");
+    let jsonArray = JSON.parse(jsonData);
     let slug = slugify(req.body.naziv, {
       lower: true,
       strict: true,
     });
-    const w = await Category.findOne({
-      where: {
-        slug,
-      },
-    });
-    if (w) {
+    function checkForKey(jsonObj, keyToCheck) {
+      for (const key in jsonObj) {
+        if (jsonObj[key].kategorije && jsonObj[key].kategorije[keyToCheck]) {
+          return true;
+        }
+      }
+      return false;
+    }
+    const keyExists = checkForKey(jsonArray, slug);
+    if (keyExists) {
       throw {
         code: 422,
         message: "vec postoji kategorija",
       };
     }
-    const category = await Category.create({
-      ...req.body,
-      slug,
-    });
-    if (!category) {
-      throw {
-        code: 422,
-        message: "nesto nije ok",
+
+    const { programId, ...rest } = req.body;
+    req.body.programId.forEach((i) => {
+      jsonArray[i].kategorije[slug] = {
+        ...jsonArray[i].kategorije[slug],
+        slug,
+        ...rest,
+        prozivodi: {},
+        image: null,
+        imageName: null,
       };
-    }
-    category.$add("program", req.body.programId);
+    });
+
+    const updatedJsonData = JSON.stringify(jsonArray, null, 2);
+    fs.writeFileSync(filePath, updatedJsonData, "utf8");
+
     res.send("ok");
   } catch (error: any) {
     res.status(error.code).send(error.message);
@@ -57,119 +60,114 @@ categoryRoute.post("/category", async (req, res) => {
 
 categoryRoute.put("/category/:id", async (req, res) => {
   try {
-    let slug = slugify(req.body.naziv, {
+    const jsonData = fs.readFileSync(filePath, "utf8");
+    let jsonArray = JSON.parse(jsonData);
+    const { naziv, caption, desc, programId } = req.body;
+    const oldCategoryId = req.params.id;
+
+    // Generisanje sluga iz naziva
+    const newCategorySlug = slugify(naziv, {
       lower: true,
       strict: true,
     });
-    const categoryFind = await Category.findOne({
-      where: {
-        slug: slug,
-      },
-    });
-    if (categoryFind!.id != (req.params.id as any)) {
-      throw {
-        code: 422,
-        message: "vec postoji kategorija",
-      };
-    }
-    const category = await Category.update(
-      {
-        ...req.body,
-        slug: slugify(req.body.naziv, {
-          lower: true,
-          strict: true,
-        }),
-      },
-      {
-        where: {
-          id: req.params.id,
-        },
-      }
-    );
-    if (!category) {
-      throw {
-        code: 500,
-        message: "nesto nije ok",
-      };
-    }
-    const t = await sequelize.transaction();
-    const existingRecords = await ProgramCategory.findAll({
-      where: {
-        categoryId: req.params.id,
-      },
-      transaction: t,
-    });
 
-    if (!existingRecords) {
-      throw {
-        code: 500,
-        message: "nesto nije ok",
-      };
-    }
+    // Provera da li je naziv kategorije promenjen
+    let isNameChanged = false;
+    let currentCategory: any = null;
 
-    const existingProgramCategoryIds = existingRecords.map(
-      (record) => record.programId
-    );
-    const toRemove = existingProgramCategoryIds.filter(
-      (id) => !req.body.programId.includes(id)
-    );
-    await ProgramCategory.destroy({
-      where: {
-        categoryId: req.params.id,
-        programId: toRemove,
-      },
-      transaction: t,
-    });
-    for (let programCategoryId of req.body.programId) {
-      if (!existingProgramCategoryIds.includes(programCategoryId)) {
-        await ProgramCategory.create(
-          {
-            categoryId: req.params.id,
-            programId: programCategoryId,
-          },
-          { transaction: t }
+    // Iteriramo kroz sve programe i kategorije da pronađemo trenutnu kategoriju
+    Object.entries(jsonArray).forEach(
+      ([programSlug, program]: [string, any]) => {
+        Object.entries(program.kategorije).forEach(
+          ([categorySlug, category]: [string, any]) => {
+            if (categorySlug === oldCategoryId) {
+              currentCategory = category;
+              if (category.naziv !== naziv) {
+                isNameChanged = true;
+              }
+            }
+          }
         );
       }
+    );
+
+    if (!currentCategory) {
+      throw new Error("Category not found");
     }
-    await t.commit();
-    const products = await Product.findAll({
-      include: {
-        model: Category,
-        where: {
-          id: req.params.id,
-        },
-        through: {
-          attributes: [],
-        },
-        attributes: [],
-      },
-      attributes: ["id"],
-      nest: true,
-      raw: true,
-    });
 
-    const nesto = await ProductProgramCategory.findAll({
-      attributes: ["productId"],
-      nest: true,
-      raw: true,
-    });
+    // Provera da li novi naziv već postoji ako je naziv promenjen
+    if (isNameChanged) {
+      let nameExists = false;
 
-    const productIdsSet = new Set(nesto.map((item) => item.productId));
-    const nonExistingIds = products
-      .map((item) => item.id)
-      .filter((id) => !productIdsSet.has(id));
+      Object.entries(jsonArray).forEach(
+        ([programSlug, program]: [string, any]) => {
+          Object.entries(program.kategorije).forEach(
+            ([categorySlug, category]: [string, any]) => {
+              if (categorySlug === newCategorySlug) {
+                nameExists = true;
+              }
+            }
+          );
+        }
+      );
 
-    await Product.update(
-      {
-        publishStatus: "inactive",
-      },
-      {
-        where: {
-          id: nonExistingIds,
-        },
+      if (nameExists) {
+        throw new Error("Category slug already exists");
+      }
+
+      // Ako je naziv promenjen, ažuriramo naziv u kategorijama
+      Object.entries(jsonArray).forEach(
+        ([programSlug, program]: [string, any]) => {
+          if (program.kategorije[oldCategoryId]) {
+            const categoryData = { ...program.kategorije[oldCategoryId] };
+            delete program.kategorije[oldCategoryId];
+            program.kategorije[newCategorySlug] = categoryData;
+          }
+        }
+      );
+    }
+
+    // Ažuriramo informacije o kategoriji
+    Object.entries(jsonArray).forEach(
+      ([programSlug, program]: [string, any]) => {
+        if (program.kategorije[newCategorySlug]) {
+          program.kategorije[newCategorySlug] = {
+            ...program.kategorije[newCategorySlug],
+            naziv: naziv,
+            caption: caption,
+            desc: desc,
+          };
+        }
       }
     );
 
+    // Prvo uklonimo kategoriju iz programa koji više nisu u listi programId
+    Object.entries(jsonArray).forEach(
+      ([programSlug, program]: [string, any]) => {
+        if (
+          program.kategorije[newCategorySlug] &&
+          !programId.includes(programSlug)
+        ) {
+          delete program.kategorije[newCategorySlug];
+        }
+      }
+    );
+
+    // Dodamo kategoriju u nove programe iz liste programId
+    programId.forEach((newProgramSlug) => {
+      if (jsonArray[newProgramSlug]) {
+        jsonArray[newProgramSlug].kategorije[newCategorySlug] = {
+          slug: newCategorySlug,
+          naziv: naziv,
+          caption: caption,
+          desc: desc,
+          prozivodi: currentCategory.prozivodi || {},
+        };
+      }
+    });
+
+    const updatedJsonData = JSON.stringify(jsonArray, null, 2);
+    fs.writeFileSync(filePath, updatedJsonData, "utf8");
     res.send("ok");
   } catch (error: any) {
     res.status(error.code).send(error.message);
@@ -178,47 +176,17 @@ categoryRoute.put("/category/:id", async (req, res) => {
 
 categoryRoute.delete("/category/:id", async (req, res) => {
   try {
-    const categoryFindPro = await ProductCategory.count({
-      where: {
-        categoryId: req.params.id,
-      },
-    });
-    if (categoryFindPro > 0) {
-      throw {
-        code: 422,
-        message: "ne mozes obrisati kategoriju jer je vezan za proizode",
-      };
-    }
-    const categoryFind = await Category.findOne({
-      where: {
-        id: req.params.id,
-      },
-    });
-    const s = await Category.destroy({
-      where: {
-        id: req.params.id,
-      },
-    });
-    if (!s) {
-      throw {
-        code: 500,
-        message: "nesto nije ok",
-      };
-    }
-    if (categoryFind && categoryFind.imageName) {
-      const imagePath = path.join(
-        __dirname,
-        "../../uploads/category",
-        categoryFind?.imageName
-      );
-      fs.unlink(imagePath, (err: any) => {
-        if (err) {
-          console.error("Error deleting image:", err);
-        } else {
-          console.log("Image deleted successfully");
+    const jsonData = fs.readFileSync(filePath, "utf8");
+    let jsonArray = JSON.parse(jsonData);
+    Object.entries(jsonArray).forEach(
+      ([programSlug, program]: [string, any]) => {
+        if (program.kategorije && program.kategorije[req.params.id]) {
+          delete program.kategorije[req.params.id];
         }
-      });
-    }
+      }
+    );
+    const updatedJsonData = JSON.stringify(jsonArray, null, 2);
+    fs.writeFileSync(filePath, updatedJsonData, "utf8");
 
     res.send("ok");
   } catch (error: any) {
@@ -228,43 +196,49 @@ categoryRoute.delete("/category/:id", async (req, res) => {
 
 categoryRoute.get("/category", async (req, res) => {
   try {
-    const categories = await Category.findAll({
-      include: {
-        model: Program,
-        through: {
-          attributes: [],
-        },
-      },
-    });
-    if (!categories) {
-      throw {
-        code: 500,
-        message: "nesto nije ok",
-      };
-    }
-    res.send(categories);
-  } catch (error: any) {
-    res.status(error.code).send(error.message);
-  }
-});
+    const jsonData = fs.readFileSync(filePath, "utf8");
+    let jsonArray = JSON.parse(jsonData);
+    function extractUniqueCategoriesWithProgram(jsonData: any): any[] {
+      const uniqueCategories: any[] = [];
 
-categoryRoute.get("/category-with-program", async (req, res) => {
-  try {
-    let response = await ProgramCategory.findAll({
-      include: [{ model: Program }, { model: Category }],
-      attributes: {
-        exclude: ["programId", "categoryId", "createdAt", "updatedAt"],
-      },
-      nest: true,
-      raw: true,
-    });
-    if (!response) {
-      throw {
-        code: 500,
-        message: "nesto nije ok",
-      };
+      // Funkcija za kopiranje objekta bez prozivodi polja
+      function copyWithoutProducts(obj: any): any {
+        const { prozivodi, ...rest } = obj;
+        return rest;
+      }
+
+      // Iteriramo kroz svaki program
+      Object.entries(jsonData).forEach(
+        ([programSlug, program]: [string, any]) => {
+          // Iteriramo kroz kategorije u svakom programu
+          Object.entries(program.kategorije).forEach(
+            ([categorySlug, category]: [string, any]) => {
+              // Proveravamo da li kategorija već postoji u uniqueCategories po slug-u
+              const existingCategory = uniqueCategories.find(
+                (cat: any) => cat.slug === category.slug
+              );
+              if (!existingCategory) {
+                // Ako kategorija ne postoji, dodajemo je u uniqueCategories
+                uniqueCategories.push({
+                  ...copyWithoutProducts(category),
+                  program: [{ value: program.slug, label: program.naziv }], // Krećemo sa nizom koji sadrzi { value: program.slug, label: program.naziv }
+                });
+              } else {
+                // Ako kategorija već postoji, dodajemo { value: program.slug, label: program.naziv } u niz programa
+                existingCategory.program.push({
+                  value: program.slug,
+                  label: program.naziv,
+                });
+              }
+            }
+          );
+        }
+      );
+
+      return uniqueCategories;
     }
-    res.send(response);
+
+    res.send(extractUniqueCategoriesWithProgram(jsonArray));
   } catch (error: any) {
     res.status(error.code).send(error.message);
   }
@@ -272,51 +246,29 @@ categoryRoute.get("/category-with-program", async (req, res) => {
 
 categoryRoute.get("/category/:program/:category", async (req, res) => {
   try {
-    const program = await Program.findOne({
-      where: {
-        slug: req.params.program,
-      },
-      raw: true,
-    });
+    const jsonData = fs.readFileSync(filePath, "utf8");
+    let jsonArray = JSON.parse(jsonData);
+
+    const program = jsonArray[req.params.program];
     if (!program) {
-      throw {
-        code: 422,
-        message: "Trazeni program nepostoji!",
-      };
+      return res.send({
+        products: [],
+        category: null,
+      });
     }
-    const category: any = await Category.findOne({
-      where: {
-        slug: req.params.category,
-      },
-      raw: true,
-    });
-    if (!category) {
-      throw {
-        code: 422,
-        message: "Trazena kategorija nepostoji!",
-      };
+    const cat = program.kategorije[req.params.category];
+    if (!cat) {
+      return res.send({
+        products: [],
+        category: null,
+      });
     }
-    const programCategory = await ProgramCategory.findAll({
-      where: {
-        programId: program!.id,
-        categoryId: category!.id,
-      },
-      raw: true,
-    });
-    const productProgramCategory = await ProductProgramCategory.findAll({
-      where: {
-        programCategoryId: programCategory!.map((i: any) => i.id),
-      },
-    });
-    const products: any = (await Product.findAll({
-      where: {
-        id: productProgramCategory!.map((i: any) => i.productId),
-        publishStatus: "active",
-      },
-    })) as any;
-    res.send({
-      products,
-      ...category,
+    return res.send({
+      products: Object.values(cat.prozivodi),
+      category: (() => {
+        const { prozivodi, ...rest } = cat;
+        return rest;
+      })(),
     });
   } catch (error: any) {
     res.status(error.code).send(error.message);

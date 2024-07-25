@@ -1,22 +1,21 @@
-import { Pocetna } from "../models/Pocetna";
-
-const express = require("express");
 const multer = require("multer");
 const path = require("path");
 const fs = require("fs");
+const filePath = "src/json/pocetna.json";
 
 const multerStorage = multer.diskStorage({
   destination: (req: any, file: any, cb: any) => {
     cb(null, "uploads/pocetna/");
-    return req;
   },
   filename: async (req: any, file: any, cb: any) => {
-    const pocetna = await Pocetna.findOne({ where: { id: 1 } });
-    if (pocetna && pocetna.imageName) {
+    const jsonData = fs.readFileSync(filePath, "utf8");
+    let jsonArray = JSON.parse(jsonData);
+
+    if (jsonArray.imageName) {
       const oldFilePath = path.join(
         __dirname,
         "../../uploads/pocetna",
-        pocetna.imageName
+        jsonArray.imageName
       );
       fs.unlink(oldFilePath, (err: any) => {
         if (err) {
@@ -26,24 +25,16 @@ const multerStorage = multer.diskStorage({
         }
       });
     }
-    cb(null, "header" + path.extname(file.originalname));
-    await Pocetna.update(
-      {
-        image:
-          `http://localhost:3000/uploads/pocetna/header` +
-          path.extname(file.originalname),
-        imageName: `header${path.extname(file.originalname)}`,
-      },
-      {
-        where: {
-          id: 1,
-        },
-      }
-    );
-    return {
-      ...req.body,
-      fileName: "header" + path.extname(file.originalname),
-    };
+
+    cb(null, "image" + path.extname(file.originalname));
+
+    jsonArray.image =
+      `http://localhost:3000/uploads/pocetna/image` +
+      path.extname(file.originalname);
+    jsonArray.imageName = `image${path.extname(file.originalname)}`;
+    const updatedJsonData = JSON.stringify(jsonArray, null, 2);
+    fs.writeFileSync(filePath, updatedJsonData, "utf8");
+    return {};
   },
 });
 

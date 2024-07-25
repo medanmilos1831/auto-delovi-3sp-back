@@ -1,40 +1,35 @@
 import { Router } from "express";
-import { Program } from "../models/Program";
-import slugify from "slugify";
-import { Category } from "../models/Category";
-import { Kontakt } from "../models/Kontakt";
+const filePath = "src/json/kontakt.json";
+const fs = require("fs");
 
 const kontaktRouter = Router();
 
 kontaktRouter.post("/kontakt", async (req, res) => {
-  const has = await Kontakt.count();
-  if (has === 0) {
-    await Kontakt.create({
-      id: 1,
-      ...req.body,
-    });
-  } else {
-    await Kontakt.update(
-      {
-        ...req.body,
-      },
-      {
-        where: {
-          id: 1,
-        },
-      }
-    );
+  try {
+    const jsonData = fs.readFileSync(filePath, "utf8");
+    let aboutData = JSON.parse(jsonData);
+    aboutData.facebook = req.body.facebook ?? null;
+    aboutData.instagram = req.body.instagram ?? null;
+    aboutData.phone = req.body.phone ?? null;
+    aboutData.email = req.body.email ?? null;
+    aboutData.adresa = req.body.adresa ?? null;
+    aboutData.coordinate = req.body.coordinate ?? null;
+    aboutData.radnimDanima = req.body.radnimDanima ?? null;
+    aboutData.subotom = req.body.subotom ?? null;
+    aboutData.nedeljom = req.body.nedeljom ?? null;
+
+    const updatedJsonData = JSON.stringify(aboutData, null, 2);
+    fs.writeFileSync(filePath, updatedJsonData, "utf8");
+    res.send("ok");
+  } catch (error: any) {
+    res.status(error.code).send(error.message);
   }
-  res.send("ok");
 });
 
 kontaktRouter.get("/kontakt", async (req, res) => {
-  const kontakt = await Kontakt.findOne({
-    where: {
-      id: 1,
-    },
-  });
-  res.send(kontakt);
+  const jsonData = fs.readFileSync(filePath, "utf8");
+  let aboutData = JSON.parse(jsonData);
+  res.send(aboutData);
 });
 
 export { kontaktRouter };

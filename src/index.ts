@@ -8,9 +8,9 @@ import {
   pocetnaRouter,
   kontaktRouter,
   aboutRouter,
-  programiRouter,
+  // programiRouter,
 } from "./router";
-import { About } from "./models/About";
+// import { About } from "./models/About";
 
 const app = express();
 
@@ -24,11 +24,15 @@ app.use(productRouter);
 app.use(pocetnaRouter);
 app.use(kontaktRouter);
 app.use(aboutRouter);
-app.use(programiRouter);
+// app.use(programiRouter);
 app.use("/uploads", express.static("uploads"));
 
-sequelize.sync().then(() => {
-  app.listen(PORT, () => {
-    console.log(`Server is running at http://localhost:${PORT}`);
-  });
+app.listen(PORT, () => {
+  console.log(`Server is running at http://localhost:${PORT}`);
 });
+
+// sequelize.sync().then(() => {
+//   app.listen(PORT, () => {
+//     console.log(`Server is running at http://localhost:${PORT}`);
+//   });
+// });

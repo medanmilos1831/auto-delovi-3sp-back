@@ -2,60 +2,13 @@ import { Router } from "express";
 import { Program } from "../models/Program";
 import { Product } from "../models/Product";
 import { Category } from "../models/Category";
-import { ProductProgramCategory } from "../models/ProductProgramCategory";
 import { ProgramCategory } from "../models/ProgramCategory";
-import { sequelize } from "../db";
 import slugify from "slugify";
 import { uploadProduct } from "../multer/productStorage";
 const nodemailer = require("nodemailer");
-
+const fs = require("fs");
+const filePath = "src/json/program.json";
 const productRouter = Router();
-
-// GENERATOR
-productRouter.post("/product-generator", async (req, res) => {
-  let products: any = [];
-  let arr = new Array(25).fill(null);
-  arr.forEach((i, index) => {
-    products.push({
-      naziv: `product_${index}`,
-      slug: slugify(`product_${index}`, {
-        lower: true,
-        strict: true,
-      }),
-      opis: "ops",
-      cena: "111",
-      publishStatus: "active",
-    });
-  });
-  const productCreated = await Product.bulkCreate(products);
-  const d = await ProgramCategory.findAll({
-    where: {
-      categoryId: 1,
-      programId: 1,
-    },
-    raw: true,
-  });
-  const ids = d.map((i: any) => i.id);
-  for (const product of productCreated) {
-    // Dodavanje više programskih kategorija za svaki proizvod
-    await product.$add("programCategory", [1, 2]);
-
-    // Dodavanje pojedinačne kategorije za svaki proizvod
-    await product.$add("categories", 1);
-  }
-
-  res.send("ok");
-});
-// END :: GENERATOR
-
-// GENERATOR
-productRouter.post("/drop", async (req, res) => {
-  await sequelize.drop();
-  await sequelize.sync({ force: true });
-
-  res.send("ok");
-});
-// END :: GENERATOR
 
 productRouter.post(
   "/uploads/product",
@@ -67,51 +20,49 @@ productRouter.post(
 
 productRouter.post("/product", async (req, res) => {
   try {
+    const jsonData = fs.readFileSync(filePath, "utf8");
+    let jsonArray = JSON.parse(jsonData);
     let slug = slugify(req.body.naziv, {
       lower: true,
       strict: true,
     });
-    const w = await Product.findOne({
-      where: {
-        slug,
-      },
-    });
-    if (w) {
-      throw {
-        code: 422,
-        message: "vec postoji proizvod",
-      };
+    for (const programKey of Object.keys(jsonArray)) {
+      const program = jsonArray[programKey];
+      if (program && program.kategorije) {
+        for (const categoryKey of Object.keys(program.kategorije)) {
+          const category = program.kategorije[categoryKey];
+          if (category && category.prozivodi) {
+            if (category.prozivodi[req.body.naziv]) {
+              throw {
+                code: 422,
+                message: "vec postoji proizvod",
+              };
+            }
+          }
+        }
+      }
     }
-    const product = await Product.create({
-      naziv: req.body.naziv ?? null,
-      opis: req.body.opis ?? null,
-      caption: req.body.caption ?? null,
-      cena: req.body.cena ?? null,
-      items: req.body.items ?? null,
-      publishStatus: "active",
-      slug: slugify(req.body.naziv, {
-        lower: true,
-        strict: true,
-      }),
-    });
-    if (!product) {
-      throw {
-        code: 422,
-        message: "nesto nije ok",
+    req.body.programId.forEach((program) => {
+      jsonArray[program].kategorije[req.body.categoryId].prozivodi = {
+        ...jsonArray[program].kategorije[req.body.categoryId].prozivodi,
+        [slug]: {
+          naziv: req.body.naziv ?? null,
+          opis: req.body.opis ?? null,
+          caption: req.body.caption ?? null,
+          cena: req.body.cena ?? null,
+          kataloski_broj: req.body.kataloski_broj ?? null,
+          image: null,
+          imageName: null,
+          items: req.body.items ?? null,
+          slug: slugify(req.body.naziv, {
+            lower: true,
+            strict: true,
+          }),
+        },
       };
-    }
-    const d = await ProgramCategory.findAll({
-      where: {
-        categoryId: req.body.categoryId,
-        programId: req.body.programId,
-      },
-      raw: true,
     });
-    const ids = d.map((i: any) => i.id);
-    await product.$add("programCategory", ids);
-    await product.$add("categories", req.body.categoryId);
-    await product.$add("programs", req.body.programId);
-
+    const updatedJsonData = JSON.stringify(jsonArray, null, 2);
+    fs.writeFileSync(filePath, updatedJsonData, "utf8");
     res.send("ok");
   } catch (error: any) {
     res.status(error.code).send(error.message);
@@ -120,101 +71,139 @@ productRouter.post("/product", async (req, res) => {
 
 productRouter.put("/product/:id", async (req, res) => {
   try {
-    let slug = slugify(req.body.naziv, {
+    const jsonData = fs.readFileSync(filePath, "utf8");
+    let jsonArray = JSON.parse(jsonData);
+    const { naziv, caption, cena, opis, categoryId, programId, items } =
+      req.body;
+    const oldProductId = req.params.id;
+
+    // Generisanje sluga iz naziva
+    const newProductSlug = slugify(naziv, {
       lower: true,
       strict: true,
     });
-    const productFind = await Program.findOne({
-      where: {
-        slug: slug,
-      },
-    });
-    if (productFind) {
-      throw {
-        code: 422,
-        message: "vec postoji proizvod",
-      };
-    }
-    await Product.update(
-      {
-        naziv: req.body.naziv,
-        opis: req.body.opis,
-        cena: req.body.cena,
-        items: req.body.items,
-        caption: req.body.caption,
-        publishStatus: "active",
-      },
-      {
-        where: {
-          id: req.params.id,
-        },
+
+    // Provera da li je naziv proizvoda promenjen
+    let isNameChanged = false;
+    let currentProduct: any = null;
+
+    // Iteriramo kroz sve programe i kategorije da pronađemo trenutni proizvod
+    Object.entries(jsonArray).forEach(
+      ([programSlug, program]: [string, any]) => {
+        Object.entries(program.kategorije).forEach(
+          ([categorySlug, category]: [string, any]) => {
+            if (category.prozivodi && category.prozivodi[oldProductId]) {
+              currentProduct = category.prozivodi[oldProductId];
+              if (currentProduct.naziv !== naziv) {
+                isNameChanged = true;
+              }
+            }
+          }
+        );
       }
     );
 
-    const programCategory = await ProgramCategory.findAll({
-      where: {
-        categoryId: req.body.categoryId,
-        programId: req.body.programId,
-      },
-      attributes: {
-        exclude: ["programId", "categoryId", "createdAt", "updatedAt"],
-      },
-      raw: true,
-    });
-    if (!programCategory) {
-      throw {
-        code: 500,
-        message: "nesto nije ok",
-      };
-    }
-    const idsToKeep = programCategory.map((i: any) => i.id);
-    const t = await sequelize.transaction();
-    const d = await ProductProgramCategory.findAll({
-      where: {
-        productId: req.params.id,
-      },
-      attributes: {
-        exclude: ["programId", "categoryId", "createdAt", "updatedAt"],
-      },
-      raw: true,
-    });
-
-    try {
-      for (const item of d) {
-        if (!idsToKeep.includes(item.programCategoryId)) {
-          await ProductProgramCategory.destroy({
-            where: {
-              id: item.id,
-            },
-            transaction: t,
-          });
-        }
-      }
-    } catch (error) {
-      await t.rollback();
+    if (!currentProduct) {
+      throw new Error("Product not found");
     }
 
-    try {
-      let r = d.map((i) => i.programCategoryId);
-      for (const item of idsToKeep) {
-        if (!r.includes(item)) {
-          await ProductProgramCategory.create(
-            {
-              productId: req.params.id,
-              programCategoryId: item,
-            },
-            {
-              transaction: t,
+    // Provera da li novi naziv već postoji ako je naziv promenjen
+    if (isNameChanged) {
+      let nameExists = false;
+
+      Object.entries(jsonArray).forEach(
+        ([programSlug, program]: [string, any]) => {
+          Object.entries(program.kategorije).forEach(
+            ([categorySlug, category]: [string, any]) => {
+              if (category.prozivodi && category.prozivodi[newProductSlug]) {
+                nameExists = true;
+              }
             }
           );
         }
+      );
+
+      if (nameExists) {
+        throw new Error("Product slug already exists");
       }
-    } catch (error) {
-      await t.rollback();
+
+      // Ako je naziv promenjen, ažuriramo naziv u proizvodima
+      Object.entries(jsonArray).forEach(
+        ([programSlug, program]: [string, any]) => {
+          Object.entries(program.kategorije).forEach(
+            ([categorySlug, category]: [string, any]) => {
+              if (category.prozivodi && category.prozivodi[oldProductId]) {
+                const productData = { ...category.prozivodi[oldProductId] };
+                delete category.prozivodi[oldProductId];
+                category.prozivodi[newProductSlug] = productData;
+              }
+            }
+          );
+        }
+      );
     }
 
-    await t.commit();
+    // Ažuriramo informacije o proizvodu
+    Object.entries(jsonArray).forEach(
+      ([programSlug, program]: [string, any]) => {
+        Object.entries(program.kategorije).forEach(
+          ([categorySlug, category]: [string, any]) => {
+            if (category.prozivodi && category.prozivodi[newProductSlug]) {
+              category.prozivodi[newProductSlug] = {
+                ...category.prozivodi[newProductSlug],
+                naziv: naziv,
+                caption: caption,
+                cena: cena,
+                opis: opis,
+                items: items,
+                slug: newProductSlug,
+              };
+            }
+          }
+        );
+      }
+    );
 
+    // Prvo uklonimo proizvod iz programa koji više nisu u listi programId
+    Object.entries(jsonArray).forEach(
+      ([programSlug, program]: [string, any]) => {
+        Object.entries(program.kategorije).forEach(
+          ([categorySlug, category]: [string, any]) => {
+            if (
+              category.prozivodi &&
+              category.prozivodi[newProductSlug] &&
+              !programId.includes(programSlug)
+            ) {
+              delete category.prozivodi[newProductSlug];
+            }
+          }
+        );
+      }
+    );
+
+    // Dodamo proizvod u nove programe iz liste programId
+    programId.forEach((newProgramSlug) => {
+      categoryId.forEach((newCategorySlug) => {
+        if (
+          jsonArray[newProgramSlug] &&
+          jsonArray[newProgramSlug].kategorije[newCategorySlug]
+        ) {
+          jsonArray[newProgramSlug].kategorije[newCategorySlug].prozivodi[
+            newProductSlug
+          ] = {
+            slug: newProductSlug,
+            naziv: naziv,
+            caption: caption,
+            cena: cena,
+            opis: opis,
+            items: items,
+          };
+        }
+      });
+    });
+
+    const updatedJsonData = JSON.stringify(jsonArray, null, 2);
+    fs.writeFileSync(filePath, updatedJsonData, "utf8");
     res.send("ok");
   } catch (error: any) {
     res.status(error.code).send(error.message);
@@ -223,98 +212,72 @@ productRouter.put("/product/:id", async (req, res) => {
 
 productRouter.get("/product", async (req, res) => {
   try {
-    const programs: any = await Product.findAll({
-      include: [
-        {
-          model: ProgramCategory,
-          include: [
-            {
-              model: Program,
-              attributes: {
-                exclude: ["createdAt", "updatedAt", "id"],
-              },
-            },
-            {
-              model: Category,
-              attributes: {
-                exclude: ["createdAt", "updatedAt", "id"],
-              },
-            },
-          ],
-          nested: true,
-          through: {
-            attributes: [],
-          },
-        },
-      ],
-      nest: true,
-    });
-    if (!programs) {
-      throw {
-        code: 500,
-        message: "nesto nije ok",
-      };
-    }
-    let parsedArray: any = programs.map((item: any) => {
-      let categories: any = [];
-      let programs: any = [];
+    const jsonData = fs.readFileSync(filePath, "utf8");
+    let jsonArray = JSON.parse(jsonData);
+    const uniqueProducts: any[] = [];
+    const seenProducts: Map<string, any> = new Map(); // Mapa za praćenje jedinstvenih proizvoda na osnovu sluga
 
-      item.programCategory.forEach((pc: any) => {
-        if (!categories.includes(pc.category.naziv)) {
-          categories.push(pc.category.naziv);
+    // Iteriramo kroz sve programe u jsonData
+    Object.entries(jsonArray).forEach(
+      ([programSlug, program]: [string, any]) => {
+        if (program && program.kategorije) {
+          // Iteriramo kroz sve kategorije u programu
+          Object.entries(program.kategorije).forEach(
+            ([categorySlug, category]: [string, any]) => {
+              if (category && category.prozivodi) {
+                // Iteriramo kroz sve proizvode u kategoriji
+                Object.entries(category.prozivodi).forEach(
+                  ([productSlug, product]: [string, any]) => {
+                    const productKey = product.slug; // Koristimo slug kao jedinstveni ključ
+
+                    // Ako proizvod nije već viđen, dodajemo ga u mapu seenProducts
+                    if (!seenProducts.has(productKey)) {
+                      seenProducts.set(productKey, {
+                        ...product,
+                        programs: [
+                          { value: programSlug, label: program.naziv },
+                        ], // Kreiramo novo polje 'programs'
+                        categories: [
+                          { value: category.slug, label: category.naziv },
+                        ], // Dodajemo kategoriju u novom formatu
+                      });
+                    } else {
+                      // Ako proizvod već postoji, dodajemo programSlug u listu 'programs'
+                      const existingProduct = seenProducts.get(productKey);
+                      if (existingProduct) {
+                        existingProduct.programs.push({
+                          value: programSlug,
+                          label: program.naziv,
+                        });
+                      }
+                      // Dodajemo kategoriju u novom formatu ako već nije prisutna za ovaj proizvod
+                      const newCategory = {
+                        value: category.slug,
+                        label: category.naziv,
+                      };
+                      if (
+                        !existingProduct.categories.find(
+                          (cat: any) => cat.value === newCategory.value
+                        )
+                      ) {
+                        existingProduct.categories.push(newCategory);
+                      }
+                    }
+                  }
+                );
+              }
+            }
+          );
         }
-        if (!programs.includes(pc.program.naziv)) {
-          programs.push(pc.program.naziv);
-        }
-      });
-
-      return {
-        id: item.id,
-        naziv: item.naziv,
-        publishStatus: item.publishStatus,
-        slug: item.slug,
-        image: item.image,
-        createdAt: item.createdAt,
-        updatedAt: item.updatedAt,
-        category: categories,
-        program: programs,
-      };
-    });
-    res.send(parsedArray);
-  } catch (error: any) {
-    res.status(error.code).send(error.message);
-  }
-});
-
-productRouter.put("/product-publish/:id", async (req, res) => {
-  try {
-    const product = await Product.findByPk(req.params.id);
-
-    if (!product) {
-      throw {
-        code: 500,
-        message: "trazeni prozivod ne postoji",
-      };
-    }
-    let publishStatus =
-      product?.publishStatus === "active" ? "inactive" : "active";
-    const productUpdatw = await Product.update(
-      {
-        publishStatus,
-      },
-      {
-        where: {
-          id: req.params.id,
-        },
       }
     );
-    if (!productUpdatw) {
-      throw {
-        code: 500,
-        message: "nesto nije ok",
-      };
-    }
-    res.send("ok");
+
+    // Konvertujemo mapu u niz jedinstvenih proizvoda
+    seenProducts.forEach((product) => {
+      uniqueProducts.push(product);
+    });
+
+    res.send(uniqueProducts);
   } catch (error: any) {
     res.status(error.code).send(error.message);
   }
@@ -360,37 +323,55 @@ productRouter.get("/product/:id", async (req, res) => {
 
 productRouter.delete("/product/:id", async (req, res) => {
   try {
-    let p = await Product.destroy({
-      where: {
-        id: req.params.id,
-      },
+    const jsonData = fs.readFileSync(filePath, "utf8");
+    let jsonArray = JSON.parse(jsonData);
+    const productIdToDelete = req.params.id;
+
+    // Iteriramo kroz sve programe i kategorije da pronađemo i obrišemo proizvod
+    Object.entries(jsonArray).forEach(([programSlug, program]: any) => {
+      Object.entries(program.kategorije).forEach(
+        ([categorySlug, category]: any) => {
+          if (category.prozivodi && category.prozivodi[productIdToDelete]) {
+            delete category.prozivodi[productIdToDelete];
+          }
+        }
+      );
     });
-    if (!p) {
-      throw {
-        code: 500,
-        message: "nesto nije ok",
-      };
-    }
-    res.send("ok");
+
+    const updatedJsonData = JSON.stringify(jsonArray, null, 2);
+    fs.writeFileSync(filePath, updatedJsonData, "utf8");
+    res.send("Product deleted successfully");
   } catch (error: any) {
-    res.status(error.code).send(error.message);
+    res.status(500).send(error.message);
   }
 });
 
-productRouter.get("/get-product-by-slug/:slug", async (req, res) => {
+productRouter.get("/product/:program/:category/:product", async (req, res) => {
   try {
-    const response = await Product.findOne({
-      where: {
-        slug: req.params.slug,
-      },
-    });
-    if (!response) {
+    const jsonData = fs.readFileSync(filePath, "utf8");
+    let jsonArray = JSON.parse(jsonData);
+
+    const program = jsonArray[req.params.program];
+    if (!program) {
       throw {
         code: 500,
         message: "nema tog proizvda",
       };
     }
-    res.send(response);
+    const cat = program.kategorije[req.params.category];
+    if (!cat) {
+      throw {
+        code: 500,
+        message: "nema tog proizvda",
+      };
+    }
+    if (!cat.prozivodi[req.params.product]) {
+      throw {
+        code: 500,
+        message: "nema tog proizvda",
+      };
+    }
+    return res.send(cat.prozivodi[req.params.product]);
   } catch (error: any) {
     res.status(error.code).send(error.message);
   }
@@ -409,14 +390,18 @@ productRouter.post("/naruci", async (req, res) => {
 
     // Srba3sp1987+
     // srba3sp@gmail.com
-    console.log("helloooooo", req.body);
+    const formatter = new Intl.NumberFormat("sr-RS", {
+      style: "currency",
+      currency: "RSD",
+    });
     const items = req.body.products
       .map(
         (item: any) => `
       <tr>
         <td>${item.product.naziv}</td>
         <td>${item.qty}</td>
-        <td>${item.product.cena}</td>
+        <td>${formatter.format(item.product.cena)}</td>
+        <td>${item.product.kataloski_broj}</td>
       </tr>
     `
       )
@@ -441,6 +426,7 @@ productRouter.post("/naruci", async (req, res) => {
             <th>Proizvod</th>
             <th>Količina</th>
             <th>Cena</th>
+            <th>Kataloski broj</th>
           </tr>
         </thead>
         <tbody>

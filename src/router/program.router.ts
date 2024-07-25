@@ -1,12 +1,8 @@
 import { Router } from "express";
-import { Program } from "../models/Program";
 import slugify from "slugify";
-import { Category } from "../models/Category";
 import { uploadProgram } from "../multer";
-import { ProductProgram } from "../models/ProductProgram";
-import { ProgramCategory } from "../models/ProgramCategory";
 const fs = require("fs");
-const path = require("path");
+const filePath = "src/json/program.json";
 
 const programRouter = Router();
 
@@ -16,31 +12,26 @@ programRouter.post("/upload", uploadProgram.single("file"), (req, res) => {
 
 programRouter.post("/program", async (req, res) => {
   try {
+    const jsonData = fs.readFileSync(filePath, "utf8");
+    let jsonArray = JSON.parse(jsonData);
     let slug = slugify(req.body.naziv, {
       lower: true,
       strict: true,
     });
-    const w = await Program.findOne({
-      where: {
-        slug,
-      },
-    });
-    if (w) {
+    if (jsonArray[slug]) {
       throw {
         code: 422,
         message: "vec postoji program",
       };
     }
-    const program = await Program.create({
+    jsonArray[slug] = {
       ...req.body,
       slug,
-    });
-    if (!program) {
-      throw {
-        code: 422,
-        message: "nesto nije ok",
-      };
-    }
+      kategorije: {},
+    };
+    const updatedJsonData = JSON.stringify(jsonArray, null, 2);
+    fs.writeFileSync(filePath, updatedJsonData, "utf8");
+
     res.send("ok");
   } catch (error: any) {
     res.status(error.code).send(error.message);
@@ -49,14 +40,11 @@ programRouter.post("/program", async (req, res) => {
 
 programRouter.get("/program", async (req, res) => {
   try {
-    const programs = await Program.findAll();
-    if (!programs) {
-      throw {
-        code: 500,
-        message: "nesto nije ok",
-      };
-    }
-    res.send(programs);
+    const jsonData = fs.readFileSync(filePath, "utf8");
+    let jsonArray = JSON.parse(jsonData);
+    res.send(
+      Object.keys(jsonArray).length === 0 ? [] : Object.values(jsonArray)
+    );
   } catch (error: any) {
     res.status(error.code).send(error.message);
   }
@@ -64,61 +52,11 @@ programRouter.get("/program", async (req, res) => {
 
 programRouter.delete("/program/:id", async (req, res) => {
   try {
-    const programFindPro = await ProductProgram.count({
-      where: {
-        programId: req.params.id,
-      },
-    });
-    if (programFindPro > 0) {
-      throw {
-        code: 422,
-        message: "ne mozes obrisati program jer je vezan za proizode",
-      };
-    }
-    const programFindCat = await ProgramCategory.count({
-      where: {
-        programId: req.params.id,
-      },
-    });
-    if (programFindCat > 0) {
-      throw {
-        code: 422,
-        message: "ne mozes obrisati program jer je vezan za kategoriju",
-      };
-    }
-
-    const programFind = await Program.findOne({
-      where: {
-        id: req.params.id,
-      },
-    });
-
-    const program = await Program.destroy({
-      where: {
-        id: req.params.id,
-      },
-    });
-    if (!program) {
-      throw {
-        code: 500,
-        message: "nesto nije ok",
-      };
-    }
-    if (programFind && programFind.imageName) {
-      const imagePath = path.join(
-        __dirname,
-        "../../uploads/program",
-        programFind?.imageName
-      );
-      fs.unlink(imagePath, (err: any) => {
-        if (err) {
-          console.error("Error deleting image:", err);
-        } else {
-          console.log("Image deleted successfully");
-        }
-      });
-    }
-
+    const jsonData = fs.readFileSync(filePath, "utf8");
+    let jsonArray = JSON.parse(jsonData);
+    delete jsonArray[req.params.id];
+    const updatedJsonData = JSON.stringify(jsonArray, null, 2);
+    fs.writeFileSync(filePath, updatedJsonData, "utf8");
     res.send("ok");
   } catch (error: any) {
     res.status(error.code).send(error.message);
@@ -127,41 +65,30 @@ programRouter.delete("/program/:id", async (req, res) => {
 
 programRouter.put("/program/:id", async (req, res) => {
   try {
+    const jsonData = fs.readFileSync(filePath, "utf8");
+    let jsonArray = JSON.parse(jsonData);
     let slug = slugify(req.body.naziv, {
       lower: true,
       strict: true,
     });
-    const programFind = await Program.findOne({
-      where: {
-        slug: slug,
-      },
-    });
-    if (programFind!.id != (req.params.id as any)) {
+    if (req.params.id != slug && jsonArray[slug]) {
       throw {
         code: 422,
         message: "vec postoji program",
       };
     }
-    const program = await Program.update(
-      {
-        ...req.body,
-        slug: slugify(req.body.naziv, {
-          lower: true,
-          strict: true,
-        }),
-      },
-      {
-        where: {
-          id: req.params.id,
-        },
-      }
-    );
-    if (!program) {
-      throw {
-        code: 500,
-        message: "nesto nije ok",
-      };
+    jsonArray[slug] = {
+      ...jsonArray[req.params.id],
+      slug,
+      ...req.body,
+    };
+    if (req.params.id != slug) {
+      delete jsonArray[req.params.id];
     }
+
+    const updatedJsonData = JSON.stringify(jsonArray, null, 2);
+    fs.writeFileSync(filePath, updatedJsonData, "utf8");
+
     res.send("ok");
   } catch (error: any) {
     res.status(error.code).send(error.message);
@@ -170,30 +97,40 @@ programRouter.put("/program/:id", async (req, res) => {
 
 programRouter.get("/program/:program", async (req, res) => {
   try {
-    const pr = await Program.findOne({
-      where: {
-        slug: req.params.program,
-      },
-    });
-    if (!pr) {
-      throw {
-        code: 422,
-        message: "Trazeni program nepostoji!",
-      };
+    let jsonArray = JSON.parse(fs.readFileSync(filePath, "utf8"));
+    if (!jsonArray[req.params.program]) {
+      return res.send([]);
     }
-    const categories = await Program.findAll({
-      where: {
-        slug: req.params.program,
-      },
-      include: [
-        {
-          model: Category,
-          nested: true,
-        },
-      ],
-      nest: true,
+
+    const categories: any = [];
+
+    // Iteriramo kroz sve programe u JSON objektu
+    for (const programKey in jsonArray) {
+      if (Object.hasOwnProperty.call(jsonArray, programKey)) {
+        const program = jsonArray[programKey];
+
+        // Iteriramo kroz sve kategorije u svakom programu
+        for (const categoryKey in program.kategorije) {
+          if (Object.hasOwnProperty.call(program.kategorije, categoryKey)) {
+            const category = program.kategorije[categoryKey];
+
+            // Izvlačimo slug i naziv kategorije
+            const { slug, naziv, desc, caption, image, imageName } = category;
+
+            // Dodajemo kategoriju u listu sa slug-om i nazivom
+            categories.push({ slug, naziv, desc, caption, image, imageName });
+          }
+        }
+      }
+    }
+    res.send({
+      naziv: jsonArray[req.params.program]?.naziv ?? null,
+      caption: jsonArray[req.params.program]?.caption ?? null,
+      desc: jsonArray[req.params.program]?.desc ?? null,
+      image: jsonArray[req.params.program]?.image ?? null,
+      imageName: jsonArray[req.params.program]?.imageName ?? null,
+      category: categories,
     });
-    res.send(categories[0]);
   } catch (error: any) {
     res.status(error.code).send(error.message);
   }
