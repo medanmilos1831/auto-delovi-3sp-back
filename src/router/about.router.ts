@@ -1,6 +1,4 @@
 import { Router } from "express";
-import { About } from "../models/About";
-import { sequelize } from "../db";
 import { aboutUpload } from "../multer/aboutStorage";
 const filePath = "../json/onama.json";
 const fs = require("fs");
@@ -22,7 +20,7 @@ aboutRouter.post("/about", async (req, res) => {
     fs.writeFileSync(filePath, updatedJsonData, "utf8");
     res.send("ok");
   } catch (error: any) {
-    res.status(error.code).send(error.message);
+    res.status(422).send("Nesto nije ok");
   }
 });
 
