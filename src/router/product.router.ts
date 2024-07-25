@@ -7,7 +7,7 @@ import slugify from "slugify";
 import { uploadProduct } from "../multer/productStorage";
 const nodemailer = require("nodemailer");
 const fs = require("fs");
-const filePath = "src/json/program.json";
+const filePath = "../json/program.json";
 const productRouter = Router();
 
 productRouter.post(

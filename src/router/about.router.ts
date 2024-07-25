@@ -2,7 +2,7 @@ import { Router } from "express";
 import { About } from "../models/About";
 import { sequelize } from "../db";
 import { aboutUpload } from "../multer/aboutStorage";
-const filePath = "src/json/onama.json";
+const filePath = "../json/onama.json";
 const fs = require("fs");
 
 const aboutRouter = Router();

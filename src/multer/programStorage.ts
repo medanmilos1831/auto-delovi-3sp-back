@@ -3,7 +3,7 @@ const multer = require("multer");
 const path = require("path");
 const fs = require("fs");
 
-const filePath = "src/json/program.json";
+const filePath = "../json/program.json";
 
 // Funkcija za pronalaženje programa po slugu
 function findProgramBySlug(slug) {

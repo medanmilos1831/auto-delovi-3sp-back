@@ -1,8 +1,8 @@
 import { Router } from "express";
 import { programRouter } from "./program.router";
 import { uploadPocetna } from "../multer";
-const filePath = "src/json/pocetna.json";
-const programJson = "src/json/program.json";
+const filePath = "../json/pocetna.json";
+const programJson = "../json/program.json";
 const fs = require("fs");
 
 const pocetnaRouter = Router();

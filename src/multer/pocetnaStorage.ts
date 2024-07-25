@@ -1,7 +1,7 @@
 const multer = require("multer");
 const path = require("path");
 const fs = require("fs");
-const filePath = "src/json/pocetna.json";
+const filePath = "../json/pocetna.json";
 
 const multerStorage = multer.diskStorage({
   destination: (req: any, file: any, cb: any) => {
