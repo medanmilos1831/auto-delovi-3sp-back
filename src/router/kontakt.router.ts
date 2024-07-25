@@ -1,5 +1,5 @@
 import { Router } from "express";
-const filePath = "src/json/kontakt.json";
+const filePath = "../json/kontakt.json";
 const fs = require("fs");
 
 const kontaktRouter = Router();
@@ -28,6 +28,7 @@ kontaktRouter.post("/kontakt", async (req, res) => {
 
 kontaktRouter.get("/kontakt", async (req, res) => {
   const jsonData = fs.readFileSync(filePath, "utf8");
+  console.log("sjon", jsonData);
   let aboutData = JSON.parse(jsonData);
   res.send(aboutData);
 });
