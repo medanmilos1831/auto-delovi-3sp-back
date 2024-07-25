@@ -32,7 +32,7 @@ aboutRouter.get("/about", async (req, res) => {
     let aboutData = JSON.parse(jsonData);
     res.send(aboutData);
   } catch (error: any) {
-    res.status(error.code).send(error.message);
+    res.status(422).send("Nesto nije ok");
   }
 });
 
