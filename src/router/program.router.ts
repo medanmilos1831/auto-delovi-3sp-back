@@ -2,7 +2,7 @@ import { Router } from "express";
 import slugify from "slugify";
 import { uploadProgram } from "../multer";
 const fs = require("fs");
-const filePath = "../json/program.json";
+const filePath = "src/json/program.json";
 
 const programRouter = Router();
 

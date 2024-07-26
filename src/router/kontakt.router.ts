@@ -1,5 +1,5 @@
 import { Router } from "express";
-const filePath = "../json/kontakt.json";
+const filePath = "src/json/kontakt.json";
 const fs = require("fs");
 
 const kontaktRouter = Router();

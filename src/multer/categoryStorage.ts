@@ -1,11 +1,8 @@
-import { Category } from "../models/Category";
-
-const express = require("express");
 const multer = require("multer");
 const path = require("path");
 const fs = require("fs");
 
-const filePath = "../json/program.json";
+const filePath = "src/json/program.json";
 
 function findCategoryBySlug(slug) {
   const jsonData = fs.readFileSync(filePath, "utf8");

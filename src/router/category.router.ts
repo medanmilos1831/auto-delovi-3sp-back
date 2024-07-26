@@ -2,7 +2,7 @@ import { Router } from "express";
 import slugify from "slugify";
 import { uploadCategory } from "../multer";
 const fs = require("fs");
-const filePath = "../json/program.json";
+const filePath = "src/json/program.json";
 
 const categoryRoute = Router();
 

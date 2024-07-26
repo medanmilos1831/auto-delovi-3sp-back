@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { aboutUpload } from "../multer/aboutStorage";
-const filePath = "../json/onama.json";
+const filePath = "src/json/onama.json";
 const fs = require("fs");
 
 const aboutRouter = Router();

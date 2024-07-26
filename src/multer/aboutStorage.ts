@@ -1,7 +1,7 @@
 const multer = require("multer");
 const path = require("path");
 const fs = require("fs");
-const filePath = "../json/onama.json";
+const filePath = "src/json/onama.json";
 
 const multerStorage = multer.diskStorage({
   destination: (req: any, file: any, cb: any) => {
