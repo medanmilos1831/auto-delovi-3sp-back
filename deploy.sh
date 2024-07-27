@@ -20,10 +20,16 @@ echo "Povezan sam na server"
 hostname
 
 # Čuvanje json foldera
-if [ -d "auto-delovi-3sp-back/src/json" ]; then
-    mv auto-delovi-3sp-back/src/json /root/json_backup
-    echo "Sačuvan je json folder"
+if [ -d "/root/auto-delovi-3sp-back/src/json" ]; then
+    echo "Pronadjen je json folder, premeštanje..."
+    mkdir /root/json_backup
+    mv /root/auto-delovi-3sp-back/src/json/* /root/json_backup/
+    echo "json folder je sačuvan"
+    echo "json folder je sačuvan"
+else
+    echo "json folder nije pronadjen"
 fi
+
 
 # Brisanje postojećeg direktorijuma
 if [ -d "auto-delovi-3sp-back" ]; then
@@ -42,8 +48,11 @@ pm2 restart all
 npx tsc
 pm2 start build/index.js --name "auto-delovi-3sp"
 if [ -d "/root/json_backup" ]; then
+    echo "Premeštanje json foldera nazad"
     mv /root/json_backup /root/auto-delovi-3sp-back/src/json
-    echo "Vraćen je json folder"
+    echo "json folder je vraćen"
+else
+    echo "json folder nije pronadjen u backup-u"
 fi
 cd ..
 rm -rf auto-delovi-3sp-back.zip
