@@ -42,7 +42,7 @@ pm2 restart all
 npx tsc
 pm2 start build/index.js --name "auto-delovi-3sp"
 if [ -d "/root/json_backup" ]; then
-    mv /root/json_backup auto-delovi-3sp-back/src/json
+    mv /root/json_backup /root/auto-delovi-3sp-back/src/json
     echo "Vraćen je json folder"
 fi
 cd ..
