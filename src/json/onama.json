@@ -1,6 +1,6 @@
 {
-  "headline": "Headline 123",
-  "image": "http://localhost:3000/uploads/about/image.jpg",
+  "headline": "3sp",
+  "image": "https://api.auto-delovi-3sp.com/uploads/about/image.jpg",
   "imageName": "image.jpg",
   "opis": "This is a sample description for the about section.",
   "items": [

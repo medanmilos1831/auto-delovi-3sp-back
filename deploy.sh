@@ -25,7 +25,6 @@ if [ -d "/root/auto-delovi-3sp-back/src/json" ]; then
     mkdir /root/json_backup
     mv /root/auto-delovi-3sp-back/src/json/* /root/json_backup/
     echo "json folder je sačuvan"
-    echo "json folder je sačuvan"
 else
     echo "json folder nije pronadjen"
 fi
@@ -49,7 +48,7 @@ npx tsc
 pm2 start build/index.js --name "auto-delovi-3sp"
 if [ -d "/root/json_backup" ]; then
     echo "Premeštanje json foldera nazad"
-    mv /root/json_backup /root/auto-delovi-3sp-back/src/json
+    mv /root/json_backup/* /root/auto-delovi-3sp-back/src/json/
     echo "json folder je vraćen"
 else
     echo "json folder nije pronadjen u backup-u"

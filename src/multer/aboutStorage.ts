@@ -29,7 +29,7 @@ const multerStorage = multer.diskStorage({
     cb(null, "image" + path.extname(file.originalname));
 
     jsonArray.image =
-      `http://localhost:3000/uploads/about/image` +
+      `https://api.auto-delovi-3sp.com/uploads/about/image` +
       path.extname(file.originalname);
     jsonArray.imageName = `image${path.extname(file.originalname)}`;
     const updatedJsonData = JSON.stringify(jsonArray, null, 2);

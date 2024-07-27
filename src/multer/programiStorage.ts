@@ -28,7 +28,7 @@ const multerStorage = multer.diskStorage({
     await Programi.update(
       {
         image:
-          `http://localhost:3000/uploads/programi/header` +
+          `https://api.auto-delovi-3sp.com/uploads/programi/header` +
           path.extname(file.originalname),
         imageName: `header${path.extname(file.originalname)}`,
       },

@@ -4,7 +4,7 @@
     "caption": "\"Neque porro quisquam est qui dolorem ipsum quia dolor sit amet, consectetur, adipisci velit...\"",
     "desc": "dasdas",
     "slug": "auto-program",
-    "image": "http://localhost:3000/uploads/program/auto-program.jpg",
+    "image": "https://api.auto-delovi-3sp.com/uploads/program/auto-program.jpg",
     "imageName": "auto-program.jpg",
     "kategorije": {
       "filteris": {
@@ -19,13 +19,13 @@
             "caption": "dsadas",
             "cena": "1221213",
             "kataloski_broj": "qqq",
-            "image": "http://localhost:3000/uploads/product/dsadasdas.webp",
+            "image": "https://api.auto-delovi-3sp.com/uploads/product/dsadasdas.webp",
             "imageName": "dsadasdas.webp",
             "items": null,
             "slug": "dsadasdas"
           }
         },
-        "image": "http://localhost:3000/uploads/category/filteris.jpg",
+        "image": "https://api.auto-delovi-3sp.com/uploads/category/filteris.jpg",
         "imageName": "filteris.jpg"
       }
     }
