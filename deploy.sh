@@ -19,6 +19,12 @@ sshpass -p $REMOTE_PASSWORD ssh -o StrictHostKeyChecking=no $REMOTE_USER@$REMOTE
 echo "Povezan sam na server"
 hostname
 
+# Čuvanje json foldera
+if [ -d "auto-delovi-3sp-back/src/json" ]; then
+    mv auto-delovi-3sp-back/src/json /root/json_backup
+    echo "Sačuvan je json folder"
+fi
+
 # Brisanje postojećeg direktorijuma
 if [ -d "auto-delovi-3sp-back" ]; then
     rm -rf auto-delovi-3sp-back
@@ -35,48 +41,11 @@ npm install
 pm2 restart all
 npx tsc
 pm2 start build/index.js --name "auto-delovi-3sp"
+if [ -d "/root/json_backup" ]; then
+    mv /root/json_backup auto-delovi-3sp-back/src/json
+    echo "Vraćen je json folder"
+fi
 cd ..
 rm -rf auto-delovi-3sp-back.zip
 ENDSSH
-
-# mkdir -p $REMOTE_PROJECT_PATH
-# unzip -o $REMOTE_ZIP_PATH -d $REMOTE_PROJECT_PATH
-# echo "5: after Unzip"
-# cd $REMOTE_PROJECT_PATH
-# npm install
-# pm2 restart all
-# rm $REMOTE_ZIP_PATH
-# rm $LOCAL_ZIP_FILE
 echo "7: Deployment finished!"
-
-# sshpass -p $REMOTE_PASSWORD scp $LOCAL_ZIP_FILE $REMOTE_USER@$REMOTE_HOST:$REMOTE_ZIP_PATH
-# echo "2"
-
-
-# # sshpass -p $REMOTE_PASSWORD
-# echo "2"
-
-# sshpass -p $REMOTE_PASSWORD ssh $REMOTE_USER@$REMOTE_HOST
-# # ssh $REMOTE_USER@$REMOTE_HOST
-# scp $LOCAL_ZIP_FILE $REMOTE_USER@$REMOTE_HOST:$REMOTE_ZIP_PATH
-# # echo "3"
-
-# # REMOTE_PROJECT_PATH="/root/auto-delovi-back-3sp"
-# # REMOTE_ZIP_PATH="/root/auto-delovi-back-3sp.zip"
-
-# echo "BEFORE Unzip"
-
-
-# unzip -o $REMOTE_ZIP_PATH -d $REMOTE_PROJECT_PATH
-# echo "after Unzip"
-# # cd $REMOTE_PROJECT_PATH
-# echo "before install"
-# npm install
-
-# pm2 restart all
-
-# rm $REMOTE_ZIP_PATH
-# # ENDSSH
-# rm $LOCAL_ZIP_FILE
-
-echo "Deployment finished!"
