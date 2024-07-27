@@ -1,5 +1,5 @@
 {
-  "headline": "This is a sample headline",
+  "headline": "Headline",
   "image": "http://localhost:3000/uploads/about/image.jpg",
   "imageName": "image.jpg",
   "opis": "This is a sample description for the about section.",

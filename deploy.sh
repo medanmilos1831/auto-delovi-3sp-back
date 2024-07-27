@@ -29,8 +29,12 @@ fi
 unzip -o auto-delovi-3sp-back.zip -d /root/
 echo "Novi direktorijum auto-delovi-3sp-back je otpakovan"
 cd auto-delovi-3sp-back
+rm -rf node_modules
+rm -rf package-lock.json
 npm install
 pm2 restart all
+npx tsc
+pm2 start build/index.js --name "auto-delovi-3sp"
 cd ..
 rm -rf auto-delovi-3sp-back.zip
 ENDSSH
