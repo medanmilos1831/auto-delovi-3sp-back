@@ -28,7 +28,6 @@ kontaktRouter.post("/kontakt", async (req, res) => {
 
 kontaktRouter.get("/kontakt", async (req, res) => {
   const jsonData = fs.readFileSync(filePath, "utf8");
-  console.log("sjon", jsonData);
   let aboutData = JSON.parse(jsonData);
   res.send(aboutData);
 });
