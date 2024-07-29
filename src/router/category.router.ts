@@ -265,9 +265,9 @@ categoryRoute.get("/category/:program/:category", async (req, res) => {
     }
     return res.send({
       products: Object.values(cat.prozivodi),
-      category: (() => {
+      ...(() => {
         const { prozivodi, ...rest } = cat;
-        return rest;
+        return { ...rest };
       })(),
     });
   } catch (error: any) {

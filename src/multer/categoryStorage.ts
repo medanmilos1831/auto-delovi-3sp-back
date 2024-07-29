@@ -51,7 +51,7 @@ const multerStorage = multer.diskStorage({
         ([categorySlug, category]: any) => {
           if (category.slug === req.body.slug) {
             category.imageName = uniqueSuffix + path.extname(file.originalname); // Ažuriramo imageName
-            category.image = `https://api.auto-delovi-3sp.com/uploads/product/${
+            category.image = `https://api.auto-delovi-3sp.com/uploads/category/${
               uniqueSuffix + path.extname(file.originalname)
             }`;
           }
