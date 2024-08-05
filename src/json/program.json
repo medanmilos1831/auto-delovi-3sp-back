@@ -2,32 +2,29 @@
   "auto-program": {
     "naziv": "auto program",
     "caption": "\"Neque porro quisquam est qui dolorem ipsum quia dolor sit amet, consectetur, adipisci velit...\"",
-    "desc": "dasdas",
+    "desc": "dasdasdas",
     "slug": "auto-program",
-    "image": "https://api.auto-delovi-3sp.com/uploads/program/auto-program.jpg",
-    "imageName": "auto-program.jpg",
     "kategorije": {
-      "filteris": {
-        "slug": "filteris",
-        "naziv": "filteriS",
-        "caption": "dasdas",
-        "desc": "dasdas",
-        "prozivodi": {
-          "dsadasdas": {
-            "naziv": "dsadasdas",
-            "opis": "sdaas",
-            "caption": "dsadas",
-            "cena": "1221213",
-            "kataloski_broj": "qqq",
-            "image": "https://api.auto-delovi-3sp.com/uploads/product/dsadasdas.webp",
-            "imageName": "dsadasdas.webp",
-            "items": null,
-            "slug": "dsadasdas"
-          }
-        },
-        "image": "https://api.auto-delovi-3sp.com/uploads/category/filteris.jpg",
-        "imageName": "filteris.jpg"
+      "gume": {
+        "slug": "gume",
+        "naziv": "Gume",
+        "caption": "dsa",
+        "desc": "sadas",
+        "prozivodi": {},
+        "image": "http://localhost:3001/uploads/category/gume.jpg",
+        "imageName": "gume.jpg"
       }
-    }
+    },
+    "imageName": "auto-program.jpg",
+    "image": "https://api.auto-delovi-3sp.com/uploads/program/auto-program.jpg"
+  },
+  "traktorski-program": {
+    "naziv": "traktorski program",
+    "caption": "\"Neque porro quisquam est qui dolorem ipsum quia dolor sit amet, consectetur, adipisci velit...\"",
+    "desc": "dasdas",
+    "slug": "traktorski-program",
+    "kategorije": {},
+    "imageName": "traktorski-program.jpg",
+    "image": "https://api.auto-delovi-3sp.com/uploads/program/traktorski-program.jpg"
   }
 }

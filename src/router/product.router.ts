@@ -1,8 +1,4 @@
 import { Router } from "express";
-import { Program } from "../models/Program";
-import { Product } from "../models/Product";
-import { Category } from "../models/Category";
-import { ProgramCategory } from "../models/ProgramCategory";
 import slugify from "slugify";
 import { uploadProduct } from "../multer/productStorage";
 const nodemailer = require("nodemailer");
@@ -272,50 +268,11 @@ productRouter.get("/product", async (req, res) => {
       }
     );
 
-    // Konvertujemo mapu u niz jedinstvenih proizvoda
     seenProducts.forEach((product) => {
       uniqueProducts.push(product);
     });
 
     res.send(uniqueProducts);
-  } catch (error: any) {
-    res.status(error.code).send(error.message);
-  }
-});
-
-productRouter.get("/product/:id", async (req, res) => {
-  try {
-    const product: any = await Product.findByPk(req.params.id, {
-      include: [
-        {
-          model: ProgramCategory,
-          through: {
-            attributes: [],
-          },
-        },
-        {
-          model: Category,
-          through: {
-            attributes: [],
-          },
-        },
-        {
-          model: Program,
-          through: {
-            attributes: [],
-          },
-        },
-      ],
-      // raw: true,
-      nest: true,
-    });
-    if (!product) {
-      throw {
-        code: 422,
-        message: "nema proizoda",
-      };
-    }
-    res.send(product);
   } catch (error: any) {
     res.status(error.code).send(error.message);
   }
@@ -327,7 +284,6 @@ productRouter.delete("/product/:id", async (req, res) => {
     let jsonArray = JSON.parse(jsonData);
     const productIdToDelete = req.params.id;
 
-    // Iteriramo kroz sve programe i kategorije da pronađemo i obrišemo proizvod
     Object.entries(jsonArray).forEach(([programSlug, program]: any) => {
       Object.entries(program.kategorije).forEach(
         ([categorySlug, category]: any) => {
@@ -380,16 +336,12 @@ productRouter.get("/product/:program/:category/:product", async (req, res) => {
 productRouter.post("/naruci", async (req, res) => {
   try {
     const transporter = nodemailer.createTransport({
-      service: "gmail", // ili drugi email servis
+      service: "gmail",
       auth: {
         user: "srba3sp@gmail.com",
         pass: "pdoy mngj pzwz gcpn",
       },
     });
-    // pdoy mngj pzwz gcpn
-
-    // Srba3sp1987+
-    // srba3sp@gmail.com
     const formatter = new Intl.NumberFormat("sr-RS", {
       style: "currency",
       currency: "RSD",
@@ -438,12 +390,9 @@ productRouter.post("/naruci", async (req, res) => {
       from: "medanmilos1831@gmail.com",
       to: "srba3sp@gmail.com",
       subject: "Narudžba potvrđena",
-      // text: "heloooo",
       html: htmlContent,
     };
-    let info = await transporter.sendMail(mailOptions);
-
-    console.log("naruciiiii", info);
+    await transporter.sendMail(mailOptions);
     res.send("ok");
   } catch (error: any) {
     res.status(error.code).send(error.message);

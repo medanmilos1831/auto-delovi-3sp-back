@@ -129,7 +129,12 @@ programRouter.get("/program/:program", async (req, res) => {
       desc: jsonArray[req.params.program]?.desc ?? null,
       image: jsonArray[req.params.program]?.image ?? null,
       imageName: jsonArray[req.params.program]?.imageName ?? null,
-      category: categories,
+      category: (() => {
+        if (!jsonArray[req.params.program].kategorije) {
+          return [];
+        }
+        return Object.values(jsonArray[req.params.program].kategorije);
+      })(),
     });
   } catch (error: any) {
     res.status(error.code).send(error.message);
