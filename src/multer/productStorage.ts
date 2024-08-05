@@ -67,7 +67,7 @@ const multerStorage = multer.diskStorage({
     updateProductImageName(
       req.body.slug,
       uniqueSuffix + path.extname(file.originalname),
-      `https://api.auto-delovi-3sp.com/uploads/product/${
+      `${process.env.DATABASE_URL}/uploads/product/${
         uniqueSuffix + path.extname(file.originalname)
       }`
     );
