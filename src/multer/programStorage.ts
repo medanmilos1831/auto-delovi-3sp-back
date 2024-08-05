@@ -50,7 +50,7 @@ const multerStorage = multer.diskStorage({
     Object.entries(jsonArray).forEach(([programSlug, program]: any) => {
       if (program.slug === req.body.slug) {
         program.imageName = uniqueSuffix + path.extname(file.originalname); // Ažuriramo imageName
-        program.image = `https://api.auto-delovi-3sp.com/uploads/program/${
+        program.image = `${process.env.DATABASE_URL}/uploads/program/${
           uniqueSuffix + path.extname(file.originalname)
         }`;
       }
