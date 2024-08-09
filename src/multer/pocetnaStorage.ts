@@ -1,3 +1,5 @@
+import { x } from "../constants";
+
 const multer = require("multer");
 const path = require("path");
 const fs = require("fs");
@@ -29,8 +31,7 @@ const multerStorage = multer.diskStorage({
     cb(null, "image" + path.extname(file.originalname));
 
     jsonArray.image =
-      `${process.env.DATABASE_URL}/uploads/pocetna/image` +
-      path.extname(file.originalname);
+      `${x.URL}/uploads/pocetna/image` + path.extname(file.originalname);
     jsonArray.imageName = `image${path.extname(file.originalname)}`;
     const updatedJsonData = JSON.stringify(jsonArray, null, 2);
     fs.writeFileSync(filePath, updatedJsonData, "utf8");

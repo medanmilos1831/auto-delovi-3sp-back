@@ -1,3 +1,5 @@
+import { x } from "../constants";
+
 const express = require("express");
 const multer = require("multer");
 const path = require("path");
@@ -50,7 +52,7 @@ const multerStorage = multer.diskStorage({
     Object.entries(jsonArray).forEach(([programSlug, program]: any) => {
       if (program.slug === req.body.slug) {
         program.imageName = uniqueSuffix + path.extname(file.originalname); // Ažuriramo imageName
-        program.image = `${process.env.DATABASE_URL}/uploads/program/${
+        program.image = `${x.URL}/uploads/program/${
           uniqueSuffix + path.extname(file.originalname)
         }`;
       }

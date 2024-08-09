@@ -8,10 +8,10 @@ import {
   kontaktRouter,
   aboutRouter,
 } from "./router";
+import { x } from "./constants";
 
 const app = express();
 
-const PORT = 3000;
 app.use(cors());
 app.use(express.json());
 
@@ -23,6 +23,6 @@ app.use(kontaktRouter);
 app.use(aboutRouter);
 app.use("/uploads", express.static("uploads"));
 
-app.listen(PORT, "0.0.0.0", () => {
-  console.log(`Server is running at http://localhost:${process.env.PORT}`);
+app.listen(x.PORT, "0.0.0.0", () => {
+  console.log(`Server is running at http://localhost:${x.PORT}`);
 });

@@ -1,3 +1,5 @@
+import { x } from "../constants";
+
 const filePath = "src/json/program.json";
 const multer = require("multer");
 const path = require("path");
@@ -67,7 +69,7 @@ const multerStorage = multer.diskStorage({
     updateProductImageName(
       req.body.slug,
       uniqueSuffix + path.extname(file.originalname),
-      `${process.env.DATABASE_URL}/uploads/product/${
+      `${x.URL}/uploads/product/${
         uniqueSuffix + path.extname(file.originalname)
       }`
     );

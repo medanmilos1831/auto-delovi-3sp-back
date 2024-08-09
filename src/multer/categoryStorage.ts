@@ -1,3 +1,5 @@
+import { x } from "../constants";
+
 const multer = require("multer");
 const path = require("path");
 const fs = require("fs");
@@ -8,7 +10,6 @@ function findCategoryBySlug(slug) {
   const jsonData = fs.readFileSync(filePath, "utf8");
   let jsonArray = JSON.parse(jsonData);
 
-  // Iteriramo kroz sve programe i kategorije da pronađemo kategoriju po slugu
   for (const [programSlug, program] of Object.entries(jsonArray) as any) {
     for (const [categorySlug, category] of Object.entries(program.kategorije)) {
       if (categorySlug === slug) {
@@ -51,7 +52,7 @@ const multerStorage = multer.diskStorage({
         ([categorySlug, category]: any) => {
           if (category.slug === req.body.slug) {
             category.imageName = uniqueSuffix + path.extname(file.originalname); // Ažuriramo imageName
-            category.image = `${process.env.DATABASE_URL}/uploads/category/${
+            category.image = `${x.URL}/uploads/category/${
               uniqueSuffix + path.extname(file.originalname)
             }`;
           }
@@ -62,42 +63,6 @@ const multerStorage = multer.diskStorage({
     const updatedJsonData = JSON.stringify(jsonArray, null, 2);
     fs.writeFileSync(filePath, updatedJsonData, "utf8");
 
-    // const cat = await Category.findOne({ where: { id: req.body.id } });
-
-    // if (cat && cat.imageName) {
-    //   const oldFilePath = path.join(
-    //     __dirname,
-    //     "../../uploads/category",
-    //     cat.imageName
-    //   );
-    //   fs.unlink(oldFilePath, (err: any) => {
-    //     if (err) {
-    //       console.error("Error deleting old image:", err);
-    //     } else {
-    //       console.log("Old image deleted successfully");
-    //     }
-    //   });
-    // }
-    // const uniqueSuffix = req.body.id + "-" + req.body.slug;
-    // cb(null, uniqueSuffix + path.extname(file.originalname));
-
-    // await Category.update(
-    //   {
-    //     image: `http://localhost:3000/uploads/category/${
-    //       uniqueSuffix + path.extname(file.originalname)
-    //     }`,
-    //     imageName: uniqueSuffix + path.extname(file.originalname),
-    //   },
-    //   {
-    //     where: {
-    //       id: req.body.id,
-    //     },
-    //   }
-    // );
-    // return {
-    //   ...req.body,
-    //   fileName: uniqueSuffix + path.extname(file.originalname),
-    // };
     return {};
   },
 });
