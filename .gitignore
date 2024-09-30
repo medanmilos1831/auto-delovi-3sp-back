@@ -1,5 +1,2 @@
 node_modules/
-deploy.sh
-upload-product.sh
 uploads/
-cleaner.sh
