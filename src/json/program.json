@@ -28,8 +28,8 @@
             "caption": null,
             "cena": 3600,
             "kataloski_broj": "9230118K",
-            "image": "http://localhost:3001/uploads/product/glavcina-tocka-sa-lezajem.jpg",
-            "imageName": "glavcina-tocka-sa-lezajem.jpg",
+            "image": null,
+            "imageName": null,
             "items": null,
             "slug": "glavcina-tocka-sa-lezajem"
           }
@@ -13477,8 +13477,8 @@
             "caption": null,
             "cena": 3500,
             "kataloski_broj": 3310,
-            "image": "http://localhost:3001/uploads/product/glavcina-tocka-sa-lezajem.jpg",
-            "imageName": "glavcina-tocka-sa-lezajem.jpg",
+            "image": null,
+            "imageName": null,
             "items": null,
             "slug": "glavcina-tocka-sa-lezajem"
           }
