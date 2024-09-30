@@ -22,187 +22,107 @@ productRouter.post("/product", async (req, res) => {
       lower: true,
       strict: true,
     });
-    for (const programKey of Object.keys(jsonArray)) {
-      const program = jsonArray[programKey];
-      if (program && program.kategorije) {
-        for (const categoryKey of Object.keys(program.kategorije)) {
-          const category = program.kategorije[categoryKey];
-          if (category && category.prozivodi) {
-            if (category.prozivodi[req.body.naziv]) {
-              throw {
-                code: 422,
-                message: "vec postoji proizvod",
-              };
-            }
-          }
-        }
-      }
-    }
-    req.body.programId.forEach((program) => {
-      jsonArray[program].kategorije[req.body.categoryId].prozivodi = {
-        ...jsonArray[program].kategorije[req.body.categoryId].prozivodi,
-        [slug]: {
-          naziv: req.body.naziv ?? null,
-          opis: req.body.opis ?? null,
-          caption: req.body.caption ?? null,
-          cena: req.body.cena ?? null,
-          kataloski_broj: req.body.kataloski_broj ?? null,
-          image: null,
-          imageName: null,
-          items: req.body.items ?? null,
-          slug: slugify(req.body.naziv, {
-            lower: true,
-            strict: true,
-          }),
-        },
+    if (
+      jsonArray[req.body.programId].kategorije[req.body.categoryId.value]
+        .prozivodi[req.body.naziv]
+    ) {
+      throw {
+        code: 422,
+        message: "vec postoji proizvod",
       };
-    });
+    }
+    jsonArray[req.body.programId].kategorije[
+      req.body.categoryId.value
+    ].prozivodi = {
+      ...jsonArray[req.body.programId].kategorije[req.body.categoryId.value]
+        .prozivodi,
+      [slug]: {
+        naziv: req.body.naziv ?? null,
+        opis: req.body.opis ?? null,
+        caption: req.body.caption ?? null,
+        cena: req.body.cena ?? null,
+        kataloski_broj: req.body.kataloski_broj ?? null,
+        image: null,
+        imageName: null,
+        items: req.body.items ?? null,
+        slug: slugify(req.body.naziv, {
+          lower: true,
+          strict: true,
+        }),
+      },
+    };
     const updatedJsonData = JSON.stringify(jsonArray, null, 2);
     fs.writeFileSync(filePath, updatedJsonData, "utf8");
     res.send("ok");
   } catch (error: any) {
-    res.status(error.code).send(error.message);
+    res.status(422).send(error.message);
   }
 });
 
 productRouter.put("/product/:id", async (req, res) => {
   try {
+    console.log("re", req.body);
     const jsonData = fs.readFileSync(filePath, "utf8");
     let jsonArray = JSON.parse(jsonData);
-    const { naziv, caption, cena, opis, categoryId, programId, items } =
-      req.body;
-    const oldProductId = req.params.id;
 
-    // Generisanje sluga iz naziva
-    const newProductSlug = slugify(naziv, {
-      lower: true,
-      strict: true,
-    });
+    const {
+      naziv,
+      caption,
+      cena,
+      opis,
+      categoryId,
+      programId,
+      items,
+      kataloski_broj,
+    } = req.body;
 
-    // Provera da li je naziv proizvoda promenjen
-    let isNameChanged = false;
-    let currentProduct: any = null;
+    const productId = req.params.id;
 
-    // Iteriramo kroz sve programe i kategorije da pronađemo trenutni proizvod
-    Object.entries(jsonArray).forEach(
-      ([programSlug, program]: [string, any]) => {
-        Object.entries(program.kategorije).forEach(
-          ([categorySlug, category]: [string, any]) => {
-            if (category.prozivodi && category.prozivodi[oldProductId]) {
-              currentProduct = category.prozivodi[oldProductId];
-              if (currentProduct.naziv !== naziv) {
-                isNameChanged = true;
-              }
-            }
-          }
-        );
+    // Funkcija za pronalaženje i brisanje proizvoda iz stare kategorije i programa
+    const removeProductFromCategory = (program, category) => {
+      const categoryObj = jsonArray[program]?.kategorije[category];
+      if (categoryObj && categoryObj.prozivodi[productId]) {
+        delete categoryObj.prozivodi[productId];
       }
-    );
+    };
 
-    if (!currentProduct) {
-      throw new Error("Product not found");
-    }
-
-    // Provera da li novi naziv već postoji ako je naziv promenjen
-    if (isNameChanged) {
-      let nameExists = false;
-
-      Object.entries(jsonArray).forEach(
-        ([programSlug, program]: [string, any]) => {
-          Object.entries(program.kategorije).forEach(
-            ([categorySlug, category]: [string, any]) => {
-              if (category.prozivodi && category.prozivodi[newProductSlug]) {
-                nameExists = true;
-              }
-            }
-          );
-        }
-      );
-
-      if (nameExists) {
-        throw new Error("Product slug already exists");
-      }
-
-      // Ako je naziv promenjen, ažuriramo naziv u proizvodima
-      Object.entries(jsonArray).forEach(
-        ([programSlug, program]: [string, any]) => {
-          Object.entries(program.kategorije).forEach(
-            ([categorySlug, category]: [string, any]) => {
-              if (category.prozivodi && category.prozivodi[oldProductId]) {
-                const productData = { ...category.prozivodi[oldProductId] };
-                delete category.prozivodi[oldProductId];
-                category.prozivodi[newProductSlug] = productData;
-              }
-            }
-          );
-        }
-      );
-    }
-
-    // Ažuriramo informacije o proizvodu
-    Object.entries(jsonArray).forEach(
-      ([programSlug, program]: [string, any]) => {
-        Object.entries(program.kategorije).forEach(
-          ([categorySlug, category]: [string, any]) => {
-            if (category.prozivodi && category.prozivodi[newProductSlug]) {
-              category.prozivodi[newProductSlug] = {
-                ...category.prozivodi[newProductSlug],
-                naziv: naziv,
-                caption: caption,
-                cena: cena,
-                opis: opis,
-                items: items,
-                slug: newProductSlug,
-              };
-            }
-          }
-        );
-      }
-    );
-
-    // Prvo uklonimo proizvod iz programa koji više nisu u listi programId
-    Object.entries(jsonArray).forEach(
-      ([programSlug, program]: [string, any]) => {
-        Object.entries(program.kategorije).forEach(
-          ([categorySlug, category]: [string, any]) => {
-            if (
-              category.prozivodi &&
-              category.prozivodi[newProductSlug] &&
-              !programId.includes(programSlug)
-            ) {
-              delete category.prozivodi[newProductSlug];
-            }
-          }
-        );
-      }
-    );
-
-    // Dodamo proizvod u nove programe iz liste programId
-    programId.forEach((newProgramSlug) => {
-      categoryId.forEach((newCategorySlug) => {
-        if (
-          jsonArray[newProgramSlug] &&
-          jsonArray[newProgramSlug].kategorije[newCategorySlug]
-        ) {
-          jsonArray[newProgramSlug].kategorije[newCategorySlug].prozivodi[
-            newProductSlug
-          ] = {
-            slug: newProductSlug,
-            naziv: naziv,
-            caption: caption,
-            cena: cena,
-            opis: opis,
-            items: items,
-          };
-        }
+    // Prolazimo kroz sve programe i kategorije da pronađemo i obrišemo proizvod
+    Object.keys(jsonArray).forEach((program) => {
+      Object.keys(jsonArray[program].kategorije).forEach((category) => {
+        removeProductFromCategory(program, category);
       });
     });
 
-    const updatedJsonData = JSON.stringify(jsonArray, null, 2);
-    fs.writeFileSync(filePath, updatedJsonData, "utf8");
-    res.send("ok");
+    // Provera da li kategorija postoji u ciljanom programu, ako ne, kreiramo je
+    if (!jsonArray[programId].kategorije[categoryId.value]) {
+      jsonArray[programId].kategorije[categoryId.value] = {
+        slug: categoryId.value,
+        naziv: categoryId.label,
+        prozivodi: {},
+        image: null,
+        imageName: null,
+      };
+    }
+
+    // Dodajemo proizvod u novu kategoriju
+    jsonArray[programId].kategorije[categoryId.value].prozivodi[productId] = {
+      naziv,
+      opis,
+      caption,
+      cena,
+      kataloski_broj,
+      image: null,
+      imageName: null,
+      items,
+      slug: naziv,
+    };
+
+    // Sačuvaj izmene u JSON fajl
+    fs.writeFileSync(filePath, JSON.stringify(jsonArray, null, 2), "utf8");
+
+    res.status(200).send("Proizvod je uspešno premešten.");
   } catch (error: any) {
-    res.status(error.code).send(error.message);
+    res.status(500).send(error.message);
   }
 });
 

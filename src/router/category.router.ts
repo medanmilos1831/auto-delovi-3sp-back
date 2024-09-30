@@ -162,6 +162,8 @@ categoryRoute.put("/category/:id", async (req, res) => {
           caption: caption,
           desc: desc,
           prozivodi: currentCategory.prozivodi || {},
+          imageName: currentCategory.imageName,
+          image: currentCategory.image,
         };
       }
     });
