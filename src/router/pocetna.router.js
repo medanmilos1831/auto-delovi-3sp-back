@@ -1,13 +1,13 @@
 // Import necessary modules
 const { Router } = require("express");
 const uploadPocetna = require("../multer/pocetnaStorage");
-const fs = require("fs");
+const fs = require("fs/promises");
 const path = require("path");
 const xlsx = require("xlsx"); // Include this if you're using it for handling Excel files
 
 // Define file paths
-const filePath = "src/json/pocetna.json";
-const programJson = "src/json/program.json";
+const filePath = path.join(__dirname, "../json/pocetna.json");
+const programJson = path.join(__dirname, "../json/program.json");
 
 // Create router instance
 const pocetnaRouter = Router();
@@ -55,12 +55,12 @@ pocetnaRouter.post(
 
 pocetnaRouter.post("/pocetna", async (req, res) => {
   try {
-    const jsonData = fs.readFileSync(filePath, "utf8");
+    const jsonData = await fs.readFile(filePath, "utf8");
     let aboutData = JSON.parse(jsonData);
     aboutData.headline = req.body.headline ?? null;
     aboutData.desc = req.body.desc ?? null;
     const updatedJsonData = JSON.stringify(aboutData, null, 2);
-    fs.writeFileSync(filePath, updatedJsonData, "utf8");
+    await fs.writeFile(filePath, updatedJsonData, "utf8");
     res.send("ok");
   } catch (error) {
     res.status(error.code).send(error.message);
@@ -69,9 +69,9 @@ pocetnaRouter.post("/pocetna", async (req, res) => {
 
 pocetnaRouter.get("/pocetna", async (req, res) => {
   try {
-    const jsonData = fs.readFileSync(filePath, "utf8");
+    const jsonData = await fs.readFile(filePath, "utf8");
     let aboutData = JSON.parse(jsonData);
-    let programi = JSON.parse(fs.readFileSync(programJson, "utf8"));
+    let programi = JSON.parse(await fs.readFile(programJson, "utf8"));
     const programs = [];
 
     // Iterate through all keys in the JSON object
@@ -97,41 +97,71 @@ const multer = require("multer");
 const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
 
-pocetnaRouter.post("/pocetna/excel", upload.single("file"), (req, res) => {
-  try {
-    // Load data from buffer
-    const workbook = xlsx.read(req.file.buffer, { type: "buffer" });
-    const sheetName = workbook.SheetNames[0]; // Get the first sheet from the Excel file
-    const worksheet = workbook.Sheets[sheetName];
-
-    // Parse the Excel sheet to JSON format
-    const jsonData = xlsx.utils.sheet_to_json(worksheet);
-    let oldData;
+pocetnaRouter.post(
+  "/pocetna/excel",
+  upload.single("file"),
+  async (req, res) => {
     try {
-      oldData = JSON.parse(fs.readFileSync(programJson, "utf8"));
-    } catch (error) {
-      oldData = {}; // If the file does not exist or is empty, use an empty object
-    }
+      // Load data from buffer
+      const workbook = xlsx.read(req.file.buffer, { type: "buffer" });
+      const sheetName = workbook.SheetNames[0]; // Get the first sheet from the Excel file
+      const worksheet = workbook.Sheets[sheetName];
 
-    const createObjectFromData = (data) => {
-      const result = {};
-      data.forEach((item) => {
-        const key =
-          item.ARTIKAL_ID > 50000 && item.ARTIKAL_ID < 60000
-            ? "traktorski-program"
-            : "auto-program";
-        const firstWord = item.NAZIV.split(" ")[0].toLowerCase();
-        const productSlug = item.NAZIV.toLowerCase().replace(/\s+/g, "-");
+      // Parse the Excel sheet to JSON format
+      const jsonData = xlsx.utils.sheet_to_json(worksheet);
+      let oldData;
+      try {
+        oldData = JSON.parse(await fs.readFile(programJson, "utf8"));
+      } catch (error) {
+        oldData = {}; // If the file does not exist or is empty, use an empty object
+      }
 
-        if (!result[key]) {
-          result[key] = {
-            naziv:
-              key === "auto-program" ? "auto program" : "traktorski program",
-            caption: null,
-            desc: null,
-            slug: key,
-            kategorije: {
-              [firstWord]: {
+      const createObjectFromData = (data) => {
+        const result = {};
+        data.forEach((item) => {
+          const key =
+            item.ARTIKAL_ID > 50000 && item.ARTIKAL_ID < 60000
+              ? "traktorski-program"
+              : "auto-program";
+          const firstWord = item.NAZIV.split(" ")[0].toLowerCase();
+          const productSlug = item.NAZIV.toLowerCase().replace(/\s+/g, "-");
+
+          if (!result[key]) {
+            result[key] = {
+              naziv:
+                key === "auto-program" ? "auto program" : "traktorski program",
+              caption: null,
+              desc: null,
+              slug: key,
+              kategorije: {
+                [firstWord]: {
+                  slug: firstWord,
+                  naziv: firstWord.charAt(0).toUpperCase() + firstWord.slice(1),
+                  caption: null,
+                  desc: null,
+                  prozivodi: {
+                    [productSlug]: {
+                      naziv: item.NAZIV,
+                      opis: item.NAZIV,
+                      caption: null,
+                      cena: item.PRODAJNA_SA_PDV,
+                      kataloski_broj: item.SIF_PROIZVODJACA,
+                      image: null,
+                      imageName: null,
+                      items: null,
+                      slug: productSlug,
+                    },
+                  },
+                  imageName: null,
+                  image: null,
+                },
+              },
+              imageName: null,
+              image: null,
+            };
+          } else {
+            if (!result[key].kategorije[firstWord]) {
+              result[key].kategorije[firstWord] = {
                 slug: firstWord,
                 naziv: firstWord.charAt(0).toUpperCase() + firstWord.slice(1),
                 caption: null,
@@ -151,63 +181,37 @@ pocetnaRouter.post("/pocetna/excel", upload.single("file"), (req, res) => {
                 },
                 imageName: null,
                 image: null,
-              },
-            },
-            imageName: null,
-            image: null,
-          };
-        } else {
-          if (!result[key].kategorije[firstWord]) {
-            result[key].kategorije[firstWord] = {
-              slug: firstWord,
-              naziv: firstWord.charAt(0).toUpperCase() + firstWord.slice(1),
-              caption: null,
-              desc: null,
-              prozivodi: {
-                [productSlug]: {
-                  naziv: item.NAZIV,
-                  opis: item.NAZIV,
-                  caption: null,
-                  cena: item.PRODAJNA_SA_PDV,
-                  kataloski_broj: item.SIF_PROIZVODJACA,
-                  image: null,
-                  imageName: null,
-                  items: null,
-                  slug: productSlug,
-                },
-              },
-              imageName: null,
-              image: null,
-            };
-          } else {
-            result[key].kategorije[firstWord].prozivodi[productSlug] = {
-              naziv: item.NAZIV,
-              opis: item.NAZIV,
-              caption: null,
-              cena: item.PRODAJNA_SA_PDV,
-              kataloski_broj: item.SIF_PROIZVODJACA,
-              image: null,
-              imageName: null,
-              items: null,
-              slug: productSlug,
-            };
+              };
+            } else {
+              result[key].kategorije[firstWord].prozivodi[productSlug] = {
+                naziv: item.NAZIV,
+                opis: item.NAZIV,
+                caption: null,
+                cena: item.PRODAJNA_SA_PDV,
+                kataloski_broj: item.SIF_PROIZVODJACA,
+                image: null,
+                imageName: null,
+                items: null,
+                slug: productSlug,
+              };
+            }
           }
-        }
-      });
+        });
 
-      return result;
-    };
+        return result;
+      };
 
-    let newData = createObjectFromData(jsonData);
-    newData = preserveImages(newData, oldData);
-    const updatedJsonData = JSON.stringify(newData, null, 2);
-    fs.writeFileSync(programJson, updatedJsonData, "utf8");
+      let newData = createObjectFromData(jsonData);
+      newData = preserveImages(newData, oldData);
+      const updatedJsonData = JSON.stringify(newData, null, 2);
+      await fs.writeFile(programJson, updatedJsonData, "utf8");
 
-    res.send("ok");
-  } catch (error) {
-    console.error("Error processing Excel file:", error);
-    res.status(500).send("Error processing file");
+      res.send("ok");
+    } catch (error) {
+      console.error("Error processing Excel file:", error);
+      res.status(500).send("Error processing file");
+    }
   }
-});
+);
 
 module.exports = pocetnaRouter;

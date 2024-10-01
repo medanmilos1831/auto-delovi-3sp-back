@@ -1,13 +1,14 @@
 const { Router } = require("express");
-const fs = require("fs");
+const fs = require("fs/promises");
+const path = require("path");
 
-const filePath = "src/json/kontakt.json";
+const filePath = path.join(__dirname, "../json/kontakt.json");
 
 // POST route to update contact information
 const kontakRouter = Router();
-kontakRouter.post("/kontakt", (req, res) => {
+kontakRouter.post("/kontakt", async (req, res) => {
   try {
-    const jsonData = fs.readFileSync(filePath, "utf8");
+    const jsonData = await fs.readFile(filePath, "utf8");
     let aboutData = JSON.parse(jsonData);
 
     // Update fields with values from request body, defaulting to null if not provided
@@ -23,7 +24,7 @@ kontakRouter.post("/kontakt", (req, res) => {
 
     // Write updated data back to JSON file
     const updatedJsonData = JSON.stringify(aboutData, null, 2);
-    fs.writeFileSync(filePath, updatedJsonData, "utf8");
+    await fs.writeFile(filePath, updatedJsonData, "utf8");
     res.send("ok");
   } catch (error) {
     res.status(500).send(error.message); // Return a 500 status code on error
@@ -31,9 +32,9 @@ kontakRouter.post("/kontakt", (req, res) => {
 });
 
 // GET route to retrieve contact information
-kontakRouter.get("/kontakt", (req, res) => {
+kontakRouter.get("/kontakt", async (req, res) => {
   try {
-    const jsonData = fs.readFileSync(filePath, "utf8");
+    const jsonData = await fs.readFile(filePath, "utf8");
     let aboutData = JSON.parse(jsonData);
     res.send(aboutData);
   } catch (error) {
