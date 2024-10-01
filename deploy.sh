@@ -52,6 +52,7 @@ echo "npm install done"
 
 
 # Pokretanje aplikacije koristeći PM2
+cd ..
 pm2 restart all
 npx tsc
 pm2 start build/index.js --name "auto-delovi-3sp"
