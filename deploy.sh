@@ -39,9 +39,7 @@ rm -rf /root/auto-delovi-3sp-back.zip
 
 # Instalacija zavisnosti (ako imate zavisnosti)
 cd /root/auto-delovi-3sp-back
-rm -rf node_modules
-rm -rf package-lock.json
-npm install
+
 cd src
 sed -i 's/PORT: 3001/PORT: 3000/' constants.ts
 sed -i 's|URL: "http://localhost:3001"|URL: "https://api.auto-delovi-3sp.com"|' constants.ts
@@ -63,3 +61,5 @@ rm -rf $LOCAL_ZIP_FILE
 echo "Lokalni ZIP fajl je obrisan."
 
 echo "7: Deployment finished!"
+
+
