@@ -2,7 +2,6 @@ const { Router } = require("express");
 const fs = require("fs/promises");
 const path = require("path");
 const aboutUpload = require("../multer/aboutStorage");
-const filePath = "src/json/onama.json"; // Proveri da li je putanja ispravna
 
 // POST route to upload a file
 const aboutRouter = Router();
@@ -13,6 +12,7 @@ aboutRouter.post("/upload-about", aboutUpload.single("file"), (req, res) => {
 // POST route to update about information
 aboutRouter.post("/about", async (req, res) => {
   try {
+    const filePath = path.join(__dirname, "../json/onama.json");
     const jsonData = await fs.readFile(filePath, "utf8");
     let aboutData = JSON.parse(jsonData);
 
