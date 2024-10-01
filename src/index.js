@@ -7,7 +7,7 @@ const productRouter = require("./router/product.router");
 const pocetnaRouter = require("./router/pocetna.router");
 const kontaktRouter = require("./router/kontakt.router");
 const aboutRouter = require("./router/about.router");
-const { x } = require("./constants");
+const x = require("./constants");
 
 const app = express();
 

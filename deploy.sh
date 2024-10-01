@@ -41,9 +41,8 @@ rm -rf /root/auto-delovi-3sp-back.zip
 cd /root/auto-delovi-3sp-back
 
 cd src
-sed -i 's/PORT: 3001/PORT: 3000/' constants.ts
-sed -i 's|URL: "http://localhost:3001"|URL: "https://api.auto-delovi-3sp.com"|' constants.ts
-echo "npm install done"
+sed -i 's/PORT: 3001/PORT: 3000/' constants.js
+sed -i 's|URL: "http://localhost:3001"|URL: "https://api.auto-delovi-3sp.com"|' constants.js
 
 # Pokretanje build komande
 
@@ -51,8 +50,7 @@ echo "npm install done"
 
 # Pokretanje aplikacije koristeći PM2
 cd ..
-npx tsc
-pm2 restart auto-delovi-3sp || pm2 start build/index.js --name "auto-delovi-3sp"
+pm2 restart index
 echo "Aplikacija je pokrenuta."
 ENDSSH
 
