@@ -1,5 +1,4 @@
-import { x } from "../constants";
-
+const { x } = require("../constants");
 const multer = require("multer");
 const path = require("path");
 const fs = require("fs");
@@ -10,35 +9,34 @@ function findCategoryBySlug(slug) {
   const jsonData = fs.readFileSync(filePath, "utf8");
   let jsonArray = JSON.parse(jsonData);
 
-  for (const [programSlug, program] of Object.entries(jsonArray) as any) {
+  for (const [programSlug, program] of Object.entries(jsonArray)) {
     for (const [categorySlug, category] of Object.entries(program.kategorije)) {
       if (categorySlug === slug) {
-        return category; // Vraćamo pronađenu kategoriju
+        return category; // Return the found category
       }
     }
   }
 
-  return null; // Ako kategorija nije pronađena
+  return null; // If category is not found
 }
 
 const multerStorage = multer.diskStorage({
-  destination: (req: any, file: any, cb: any) => {
+  destination: (req, file, cb) => {
     cb(null, "uploads/category/");
-    return req;
   },
-  filename: async (req: any, file: any, cb: any) => {
+  filename: (req, file, cb) => {
     const jsonData = fs.readFileSync(filePath, "utf8");
     let jsonArray = JSON.parse(jsonData);
     const uniqueSuffix = req.body.slug;
     cb(null, uniqueSuffix + path.extname(file.originalname));
-    const category = findCategoryBySlug(req.body.slug) as any;
+    const category = findCategoryBySlug(req.body.slug);
     if (category && category.imageName) {
       const oldFilePath = path.join(
         __dirname,
         "../../uploads/category",
         category.imageName
       );
-      fs.unlink(oldFilePath, (err: any) => {
+      fs.unlink(oldFilePath, (err) => {
         if (err) {
           console.error("Error deleting old image:", err);
         } else {
@@ -46,27 +44,24 @@ const multerStorage = multer.diskStorage({
         }
       });
     }
-    // Iteriramo kroz sve programe i kategorije da pronađemo kategorije sa zadatim slugom
-    Object.entries(jsonArray).forEach(([programSlug, program]: any) => {
-      Object.entries(program.kategorije).forEach(
-        ([categorySlug, category]: any) => {
-          if (category.slug === req.body.slug) {
-            category.imageName = uniqueSuffix + path.extname(file.originalname); // Ažuriramo imageName
-            category.image = `${x.URL}/uploads/category/${
-              uniqueSuffix + path.extname(file.originalname)
-            }`;
-          }
+
+    // Iterate through all programs and categories to find categories with the specified slug
+    Object.entries(jsonArray).forEach(([programSlug, program]) => {
+      Object.entries(program.kategorije).forEach(([categorySlug, category]) => {
+        if (category.slug === req.body.slug) {
+          category.imageName = uniqueSuffix + path.extname(file.originalname); // Update imageName
+          category.image = `${x.URL}/uploads/category/${
+            uniqueSuffix + path.extname(file.originalname)
+          }`;
         }
-      );
+      });
     });
 
     const updatedJsonData = JSON.stringify(jsonArray, null, 2);
     fs.writeFileSync(filePath, updatedJsonData, "utf8");
-
-    return {};
   },
 });
 
 const uploadCategory = multer({ storage: multerStorage });
 
-export { uploadCategory };
+module.exports = uploadCategory;

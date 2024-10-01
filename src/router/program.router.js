@@ -1,6 +1,6 @@
-import { Router } from "express";
-import slugify from "slugify";
-import { uploadProgram } from "../multer";
+const { Router } = require("express");
+const slugify = require("slugify");
+const uploadProgram = require("../multer/programStorage");
 const fs = require("fs");
 const filePath = "src/json/program.json";
 
@@ -33,8 +33,8 @@ programRouter.post("/program", async (req, res) => {
     fs.writeFileSync(filePath, updatedJsonData, "utf8");
 
     res.send("ok");
-  } catch (error: any) {
-    res.status(error.code).send(error.message);
+  } catch (error) {
+    res.status(error.code || 500).send(error.message);
   }
 });
 
@@ -45,8 +45,8 @@ programRouter.get("/program", async (req, res) => {
     res.send(
       Object.keys(jsonArray).length === 0 ? [] : Object.values(jsonArray)
     );
-  } catch (error: any) {
-    res.status(error.code).send(error.message);
+  } catch (error) {
+    res.status(error.code || 500).send(error.message);
   }
 });
 
@@ -58,8 +58,8 @@ programRouter.delete("/program/:id", async (req, res) => {
     const updatedJsonData = JSON.stringify(jsonArray, null, 2);
     fs.writeFileSync(filePath, updatedJsonData, "utf8");
     res.send("ok");
-  } catch (error: any) {
-    res.status(error.code).send(error.message);
+  } catch (error) {
+    res.status(error.code || 500).send(error.message);
   }
 });
 
@@ -90,8 +90,8 @@ programRouter.put("/program/:id", async (req, res) => {
     fs.writeFileSync(filePath, updatedJsonData, "utf8");
 
     res.send("ok");
-  } catch (error: any) {
-    res.status(error.code).send(error.message);
+  } catch (error) {
+    res.status(error.code || 500).send(error.message);
   }
 });
 
@@ -102,22 +102,18 @@ programRouter.get("/program/:program", async (req, res) => {
       return res.send([]);
     }
 
-    const categories: any = [];
+    const categories = [];
 
-    // Iteriramo kroz sve programe u JSON objektu
     for (const programKey in jsonArray) {
       if (Object.hasOwnProperty.call(jsonArray, programKey)) {
         const program = jsonArray[programKey];
 
-        // Iteriramo kroz sve kategorije u svakom programu
         for (const categoryKey in program.kategorije) {
           if (Object.hasOwnProperty.call(program.kategorije, categoryKey)) {
             const category = program.kategorije[categoryKey];
 
-            // Izvlačimo slug i naziv kategorije
             const { slug, naziv, desc, caption, image, imageName } = category;
 
-            // Dodajemo kategoriju u listu sa slug-om i nazivom
             categories.push({ slug, naziv, desc, caption, image, imageName });
           }
         }
@@ -136,9 +132,9 @@ programRouter.get("/program/:program", async (req, res) => {
         return Object.values(jsonArray[req.params.program].kategorije);
       })(),
     });
-  } catch (error: any) {
-    res.status(error.code).send(error.message);
+  } catch (error) {
+    res.status(error.code || 500).send(error.message);
   }
 });
 
-export { programRouter };
+module.exports = programRouter; // Change this line

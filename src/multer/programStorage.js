@@ -1,5 +1,4 @@
-import { x } from "../constants";
-
+const { x } = require("../constants");
 const express = require("express");
 const multer = require("multer");
 const path = require("path");
@@ -7,31 +6,31 @@ const fs = require("fs");
 
 const filePath = "src/json/program.json";
 
-// Funkcija za pronalaženje programa po slugu
+// Function to find a program by slug
 function findProgramBySlug(slug) {
   const jsonData = fs.readFileSync(filePath, "utf8");
   let jsonArray = JSON.parse(jsonData);
 
-  // Iteriramo kroz sve programe da pronađemo program po slugu
+  // Iterate through all programs to find the program by slug
   for (const [programSlug, program] of Object.entries(jsonArray)) {
     if (programSlug === slug) {
-      return program; // Vraćamo pronađeni program
+      return program; // Return the found program
     }
   }
 
-  return null; // Ako program nije pronađen
+  return null; // If program not found
 }
 
 const multerStorage = multer.diskStorage({
   destination: (req, file, cb) => {
     cb(null, "uploads/program/");
   },
-  filename: async (req, file, cb) => {
+  filename: (req, file, cb) => {
     const jsonData = fs.readFileSync(filePath, "utf8");
     let jsonArray = JSON.parse(jsonData);
     const uniqueSuffix = req.body.slug;
     cb(null, uniqueSuffix + path.extname(file.originalname));
-    const program = findProgramBySlug(req.body.slug) as any;
+    const program = findProgramBySlug(req.body.slug);
 
     if (program && program.imageName) {
       const oldFilePath = path.join(
@@ -48,10 +47,10 @@ const multerStorage = multer.diskStorage({
       });
     }
 
-    // Ažuriramo imageName i image za program
-    Object.entries(jsonArray).forEach(([programSlug, program]: any) => {
+    // Update imageName and image for the program
+    Object.entries(jsonArray).forEach(([programSlug, program]) => {
       if (program.slug === req.body.slug) {
-        program.imageName = uniqueSuffix + path.extname(file.originalname); // Ažuriramo imageName
+        program.imageName = uniqueSuffix + path.extname(file.originalname); // Update imageName
         program.image = `${x.URL}/uploads/program/${
           uniqueSuffix + path.extname(file.originalname)
         }`;
@@ -64,4 +63,5 @@ const multerStorage = multer.diskStorage({
 });
 
 const uploadProgram = multer({ storage: multerStorage });
-export { uploadProgram };
+
+module.exports = uploadProgram; // Change this line

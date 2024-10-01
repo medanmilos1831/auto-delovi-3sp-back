@@ -1,9 +1,10 @@
-import { Router } from "express";
-import slugify from "slugify";
-import { uploadProduct } from "../multer/productStorage";
+const { Router } = require("express");
+const slugify = require("slugify"); // Use require for consistency
+const uploadProduct = require("../multer/productStorage");
 const nodemailer = require("nodemailer");
 const fs = require("fs");
 const filePath = "src/json/program.json";
+
 const productRouter = Router();
 
 productRouter.post(
@@ -54,14 +55,13 @@ productRouter.post("/product", async (req, res) => {
     const updatedJsonData = JSON.stringify(jsonArray, null, 2);
     fs.writeFileSync(filePath, updatedJsonData, "utf8");
     res.send("ok");
-  } catch (error: any) {
+  } catch (error) {
     res.status(422).send(error.message);
   }
 });
 
 productRouter.put("/product/:id", async (req, res) => {
   try {
-    console.log("re", req.body);
     const jsonData = fs.readFileSync(filePath, "utf8");
     let jsonArray = JSON.parse(jsonData);
 
@@ -78,7 +78,6 @@ productRouter.put("/product/:id", async (req, res) => {
 
     const productId = req.params.id;
 
-    // Funkcija za pronalaženje i brisanje proizvoda iz stare kategorije i programa
     const removeProductFromCategory = (program, category) => {
       const categoryObj = jsonArray[program]?.kategorije[category];
       if (categoryObj && categoryObj.prozivodi[productId]) {
@@ -86,14 +85,12 @@ productRouter.put("/product/:id", async (req, res) => {
       }
     };
 
-    // Prolazimo kroz sve programe i kategorije da pronađemo i obrišemo proizvod
     Object.keys(jsonArray).forEach((program) => {
       Object.keys(jsonArray[program].kategorije).forEach((category) => {
         removeProductFromCategory(program, category);
       });
     });
 
-    // Provera da li kategorija postoji u ciljanom programu, ako ne, kreiramo je
     if (!jsonArray[programId].kategorije[categoryId.value]) {
       jsonArray[programId].kategorije[categoryId.value] = {
         slug: categoryId.value,
@@ -104,7 +101,6 @@ productRouter.put("/product/:id", async (req, res) => {
       };
     }
 
-    // Dodajemo proizvod u novu kategoriju
     jsonArray[programId].kategorije[categoryId.value].prozivodi[productId] = {
       naziv,
       opis,
@@ -117,11 +113,10 @@ productRouter.put("/product/:id", async (req, res) => {
       slug: naziv,
     };
 
-    // Sačuvaj izmene u JSON fajl
     fs.writeFileSync(filePath, JSON.stringify(jsonArray, null, 2), "utf8");
 
     res.status(200).send("Proizvod je uspešno premešten.");
-  } catch (error: any) {
+  } catch (error) {
     res.status(500).send(error.message);
   }
 });
@@ -130,70 +125,60 @@ productRouter.get("/product", async (req, res) => {
   try {
     const jsonData = fs.readFileSync(filePath, "utf8");
     let jsonArray = JSON.parse(jsonData);
-    const uniqueProducts: any[] = [];
-    const seenProducts: Map<string, any> = new Map(); // Mapa za praćenje jedinstvenih proizvoda na osnovu sluga
+    const uniqueProducts = [];
+    const seenProducts = new Map();
 
-    // Iteriramo kroz sve programe u jsonData
-    Object.entries(jsonArray).forEach(
-      ([programSlug, program]: [string, any]) => {
-        if (program && program.kategorije) {
-          // Iteriramo kroz sve kategorije u programu
-          Object.entries(program.kategorije).forEach(
-            ([categorySlug, category]: [string, any]) => {
-              if (category && category.prozivodi) {
-                // Iteriramo kroz sve proizvode u kategoriji
-                Object.entries(category.prozivodi).forEach(
-                  ([productSlug, product]: [string, any]) => {
-                    const productKey = product.slug; // Koristimo slug kao jedinstveni ključ
+    Object.entries(jsonArray).forEach(([programSlug, program]) => {
+      if (program && program.kategorije) {
+        Object.entries(program.kategorije).forEach(
+          ([categorySlug, category]) => {
+            if (category && category.prozivodi) {
+              Object.entries(category.prozivodi).forEach(
+                ([productSlug, product]) => {
+                  const productKey = product.slug;
 
-                    // Ako proizvod nije već viđen, dodajemo ga u mapu seenProducts
-                    if (!seenProducts.has(productKey)) {
-                      seenProducts.set(productKey, {
-                        ...product,
-                        programs: [
-                          { value: programSlug, label: program.naziv },
-                        ], // Kreiramo novo polje 'programs'
-                        categories: [
-                          { value: category.slug, label: category.naziv },
-                        ], // Dodajemo kategoriju u novom formatu
+                  if (!seenProducts.has(productKey)) {
+                    seenProducts.set(productKey, {
+                      ...product,
+                      programs: [{ value: programSlug, label: program.naziv }],
+                      categories: [
+                        { value: category.slug, label: category.naziv },
+                      ],
+                    });
+                  } else {
+                    const existingProduct = seenProducts.get(productKey);
+                    if (existingProduct) {
+                      existingProduct.programs.push({
+                        value: programSlug,
+                        label: program.naziv,
                       });
-                    } else {
-                      // Ako proizvod već postoji, dodajemo programSlug u listu 'programs'
-                      const existingProduct = seenProducts.get(productKey);
-                      if (existingProduct) {
-                        existingProduct.programs.push({
-                          value: programSlug,
-                          label: program.naziv,
-                        });
-                      }
-                      // Dodajemo kategoriju u novom formatu ako već nije prisutna za ovaj proizvod
-                      const newCategory = {
-                        value: category.slug,
-                        label: category.naziv,
-                      };
-                      if (
-                        !existingProduct.categories.find(
-                          (cat: any) => cat.value === newCategory.value
-                        )
-                      ) {
-                        existingProduct.categories.push(newCategory);
-                      }
+                    }
+                    const newCategory = {
+                      value: category.slug,
+                      label: category.naziv,
+                    };
+                    if (
+                      !existingProduct.categories.find(
+                        (cat) => cat.value === newCategory.value
+                      )
+                    ) {
+                      existingProduct.categories.push(newCategory);
                     }
                   }
-                );
-              }
+                }
+              );
             }
-          );
-        }
+          }
+        );
       }
-    );
+    });
 
     seenProducts.forEach((product) => {
       uniqueProducts.push(product);
     });
 
     res.send(uniqueProducts);
-  } catch (error: any) {
+  } catch (error) {
     res.status(error.code).send(error.message);
   }
 });
@@ -204,20 +189,18 @@ productRouter.delete("/product/:id", async (req, res) => {
     let jsonArray = JSON.parse(jsonData);
     const productIdToDelete = req.params.id;
 
-    Object.entries(jsonArray).forEach(([programSlug, program]: any) => {
-      Object.entries(program.kategorije).forEach(
-        ([categorySlug, category]: any) => {
-          if (category.prozivodi && category.prozivodi[productIdToDelete]) {
-            delete category.prozivodi[productIdToDelete];
-          }
+    Object.entries(jsonArray).forEach(([programSlug, program]) => {
+      Object.entries(program.kategorije).forEach(([categorySlug, category]) => {
+        if (category.prozivodi && category.prozivodi[productIdToDelete]) {
+          delete category.prozivodi[productIdToDelete];
         }
-      );
+      });
     });
 
     const updatedJsonData = JSON.stringify(jsonArray, null, 2);
-    fs.writeFileSync(filePath, updatedJsonData, "utf8");
+    fs.writeFileSync(updatedJsonData, "utf8");
     res.send("Product deleted successfully");
-  } catch (error: any) {
+  } catch (error) {
     res.status(500).send(error.message);
   }
 });
@@ -248,7 +231,7 @@ productRouter.get("/product/:program/:category/:product", async (req, res) => {
       };
     }
     return res.send(cat.prozivodi[req.params.product]);
-  } catch (error: any) {
+  } catch (error) {
     res.status(error.code).send(error.message);
   }
 });
@@ -268,7 +251,7 @@ productRouter.post("/naruci", async (req, res) => {
     });
     const items = req.body.products
       .map(
-        (item: any) => `
+        (item) => `
       <tr>
         <td>${item.product.naziv}</td>
         <td>${item.qty}</td>
@@ -307,16 +290,17 @@ productRouter.post("/naruci", async (req, res) => {
       </table>
     `;
     const mailOptions = {
-      from: "medanmilos1831@gmail.com",
+      from: req.body.email,
       to: "srba3sp@gmail.com",
-      subject: "Narudžba potvrđena",
+      subject: `Nova narudžba od ${req.body.name}`,
       html: htmlContent,
     };
     await transporter.sendMail(mailOptions);
-    res.send("ok");
-  } catch (error: any) {
-    res.status(error.code).send(error.message);
+    return res.send("Narudžba uspešno poslana!");
+  } catch (error) {
+    console.error("Error sending email:", error);
+    res.status(500).send("Došlo je do greške prilikom slanja narudžbe.");
   }
 });
 
-export { productRouter };
+module.exports = productRouter;

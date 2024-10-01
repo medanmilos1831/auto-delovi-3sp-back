@@ -1,5 +1,4 @@
-import { x } from "../constants";
-
+const { x } = require("../constants");
 const filePath = "src/json/program.json";
 const multer = require("multer");
 const path = require("path");
@@ -7,36 +6,32 @@ const fs = require("fs");
 
 function findProductBySlug(slug) {
   const jsonData = fs.readFileSync(filePath, "utf8");
-  let jsonArray = JSON.parse(jsonData) as any;
+  let jsonArray = JSON.parse(jsonData);
 
-  // Iteriramo kroz sve programe i kategorije da pronađemo proizvod po slugu
+  // Iterate through all programs and categories to find the product by slug
   for (const [programSlug, program] of Object.entries(jsonArray)) {
-    for (const [categorySlug, category] of Object.entries(
-      (program as any).kategorije
-    )) {
-      if ((category as any).prozivodi && (category as any).prozivodi[slug]) {
-        return (category as any).prozivodi[slug]; // Vraćamo pronađeni proizvod
+    for (const [categorySlug, category] of Object.entries(program.kategorije)) {
+      if (category.prozivodi && category.prozivodi[slug]) {
+        return category.prozivodi[slug]; // Return the found product
       }
     }
   }
 
-  return null; // Ako proizvod nije pronađen
+  return null; // If product not found
 }
 
 function updateProductImageName(slug, imageName, image) {
   const jsonData = fs.readFileSync(filePath, "utf8");
   let jsonArray = JSON.parse(jsonData);
 
-  // Iteriramo kroz sve programe i kategorije da pronađemo proizvode sa zadatim slugom
-  Object.entries(jsonArray).forEach(([programSlug, program]: any) => {
-    Object.entries(program.kategorije).forEach(
-      ([categorySlug, category]: any) => {
-        if (category.prozivodi && category.prozivodi[slug]) {
-          category.prozivodi[slug].imageName = imageName; // Ažuriramo imageName
-          category.prozivodi[slug].image = image;
-        }
+  // Iterate through all programs and categories to find products with the specified slug
+  Object.entries(jsonArray).forEach(([programSlug, program]) => {
+    Object.entries(program.kategorije).forEach(([categorySlug, category]) => {
+      if (category.prozivodi && category.prozivodi[slug]) {
+        category.prozivodi[slug].imageName = imageName; // Update imageName
+        category.prozivodi[slug].image = image;
       }
-    );
+    });
   });
 
   const updatedJsonData = JSON.stringify(jsonArray, null, 2);
@@ -44,11 +39,10 @@ function updateProductImageName(slug, imageName, image) {
 }
 
 const multerStorage = multer.diskStorage({
-  destination: (req: any, file: any, cb: any) => {
+  destination: (req, file, cb) => {
     cb(null, "uploads/product/");
-    return req;
   },
-  filename: async (req: any, file: any, cb: any) => {
+  filename: (req, file, cb) => {
     const uniqueSuffix = req.body.slug;
     cb(null, uniqueSuffix + path.extname(file.originalname));
     const product = findProductBySlug(req.body.slug);
@@ -58,7 +52,7 @@ const multerStorage = multer.diskStorage({
         "../../uploads/product",
         product.imageName
       );
-      fs.unlink(oldFilePath, (err: any) => {
+      fs.unlink(oldFilePath, (err) => {
         if (err) {
           console.error("Error deleting old image:", err);
         } else {
@@ -73,10 +67,9 @@ const multerStorage = multer.diskStorage({
         uniqueSuffix + path.extname(file.originalname)
       }`
     );
-    return {};
   },
 });
 
 const uploadProduct = multer({ storage: multerStorage });
 
-export { uploadProduct };
+module.exports = uploadProduct;

@@ -1,15 +1,18 @@
-import { Router } from "express";
-import { programRouter } from "./program.router";
-import { uploadPocetna } from "../multer";
+// Import necessary modules
+const { Router } = require("express");
+const uploadPocetna = require("../multer/pocetnaStorage");
+const fs = require("fs");
+const path = require("path");
+const xlsx = require("xlsx"); // Include this if you're using it for handling Excel files
+
+// Define file paths
 const filePath = "src/json/pocetna.json";
 const programJson = "src/json/program.json";
-const fs = require("fs");
-const multer = require("multer");
-const xlsx = require("xlsx");
-const path = require("path");
 
+// Create router instance
 const pocetnaRouter = Router();
 
+// Function to preserve images
 const preserveImages = (newData, oldData) => {
   Object.keys(newData).forEach((programKey) => {
     const newProgram = newData[programKey];
@@ -26,7 +29,7 @@ const preserveImages = (newData, oldData) => {
             const oldProduct = oldCategory.prozivodi[productKey];
 
             if (oldProduct) {
-              // Očuvaj slike iz starog JSON-a ako postoje
+              // Preserve images from the old JSON if they exist
               if (oldProduct.image) {
                 newProduct.image = oldProduct.image;
                 newProduct.imageName = oldProduct.imageName;
@@ -41,7 +44,8 @@ const preserveImages = (newData, oldData) => {
   return newData;
 };
 
-programRouter.post(
+// Define routes
+pocetnaRouter.post(
   "/upload-pocetna",
   uploadPocetna.single("file"),
   (req, res) => {
@@ -58,7 +62,7 @@ pocetnaRouter.post("/pocetna", async (req, res) => {
     const updatedJsonData = JSON.stringify(aboutData, null, 2);
     fs.writeFileSync(filePath, updatedJsonData, "utf8");
     res.send("ok");
-  } catch (error: any) {
+  } catch (error) {
     res.status(error.code).send(error.message);
   }
 });
@@ -67,19 +71,14 @@ pocetnaRouter.get("/pocetna", async (req, res) => {
   try {
     const jsonData = fs.readFileSync(filePath, "utf8");
     let aboutData = JSON.parse(jsonData);
-
     let programi = JSON.parse(fs.readFileSync(programJson, "utf8"));
-    const programs: any = [];
+    const programs = [];
 
-    // Iteriramo kroz sve ključeve u JSON objektu
+    // Iterate through all keys in the JSON object
     for (const key in programi) {
       if (Object.hasOwnProperty.call(programi, key)) {
         const program = programi[key];
-
-        // Izvlačimo naziv (naziv) i slug (slug) programa
-        const { naziv, slug, image, caption } = program as any;
-
-        // Dodajemo program u listu sa nazivom i slug-om
+        const { naziv, slug, image, caption } = program;
         programs.push({ naziv, slug, image, caption });
       }
     }
@@ -88,40 +87,39 @@ pocetnaRouter.get("/pocetna", async (req, res) => {
       ...aboutData,
       programi: programs,
     });
-  } catch (error: any) {
+  } catch (error) {
     res.status(error.code).send(error.message);
   }
 });
 
+// Setup multer for file upload
+const multer = require("multer");
 const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
 
-pocetnaRouter.post("/pocetna/excel", upload.single("file"), (req: any, res) => {
+pocetnaRouter.post("/pocetna/excel", upload.single("file"), (req, res) => {
   try {
-    // Učitajte podatke iz buffer-a
+    // Load data from buffer
     const workbook = xlsx.read(req.file.buffer, { type: "buffer" });
-    const sheetName = workbook.SheetNames[0]; // Uzmite prvi sheet iz Excel fajla
+    const sheetName = workbook.SheetNames[0]; // Get the first sheet from the Excel file
     const worksheet = workbook.Sheets[sheetName];
 
-    // Parsiranje Excel sheet-a u JSON format
+    // Parse the Excel sheet to JSON format
     const jsonData = xlsx.utils.sheet_to_json(worksheet);
     let oldData;
     try {
       oldData = JSON.parse(fs.readFileSync(programJson, "utf8"));
     } catch (error) {
-      oldData = {}; // Ako fajl ne postoji ili je prazan, koristi prazan objekat
+      oldData = {}; // If the file does not exist or is empty, use an empty object
     }
-    // Šaljemo JSON podatke kao odgovor ili nastavljamo obradu
-    // console.log(jsonData); // Ispis podataka iz Excel fajla
+
     const createObjectFromData = (data) => {
       const result = {};
-
       data.forEach((item) => {
         const key =
           item.ARTIKAL_ID > 50000 && item.ARTIKAL_ID < 60000
             ? "traktorski-program"
             : "auto-program";
-        console.log("item.naziv", item);
         const firstWord = item.NAZIV.split(" ")[0].toLowerCase();
         const productSlug = item.NAZIV.toLowerCase().replace(/\s+/g, "-");
 
@@ -199,128 +197,17 @@ pocetnaRouter.post("/pocetna/excel", upload.single("file"), (req: any, res) => {
 
       return result;
     };
-    // console.log("createObjectFromData", jsonData[0]);
-    console.log("createObjectFromData", createObjectFromData(jsonData));
+
     let newData = createObjectFromData(jsonData);
     newData = preserveImages(newData, oldData);
     const updatedJsonData = JSON.stringify(newData, null, 2);
     fs.writeFileSync(programJson, updatedJsonData, "utf8");
 
-    // Upisivanje u JSON fajl
-    // const updatedJsonData = JSON.stringify(newData, null, 2);
-    // fs.writeFileSync(programJson, updatedJsonData, "utf8");
-    // res.send(jsonData); // Možete vratiti podatke kao odgovor ili ih dalje procesuirati
+    res.send("ok");
   } catch (error) {
     console.error("Error processing Excel file:", error);
-    // res.status(500).send("Error processing file");
+    res.status(500).send("Error processing file");
   }
-  // Učitavanje starog JSON-a
-
-  // const generateUniqueIds = (start, end, count) => {
-  //   const ids = new Set();
-  //   while (ids.size < count) {
-  //     const id = Math.floor(Math.random() * (end - start + 1)) + start;
-  //     ids.add(id);
-  //   }
-  //   return Array.from(ids);
-  // };
-
-  // const generateData = (numItems) => {
-  //   const half = numItems / 2;
-
-  //   // Generiši 3000 jedinstvenih ID-ova u opsegu 50000-60000
-  //   const traktorskiProgramIds = generateUniqueIds(50000, 60000, half);
-
-  //   // Generiši 3000 jedinstvenih ID-ova u opsegu 1-49999
-  //   const autoProgramIds = generateUniqueIds(1, 49999, half);
-
-  //   const ids = [...traktorskiProgramIds, ...autoProgramIds];
-  //   const categories = [
-  //     "filteri",
-  //     "pločice",
-  //     "gume",
-  //     "svečice",
-  //     "akumulatori",
-  //     "pumpa-za-gorivo",
-  //     "zamajac",
-  //     "kočioni-diskovi",
-  //     "kočione-pločice",
-  //     "španeri",
-  //     "ulje-za-motor",
-  //     "mjenjač",
-  //     "remenice",
-  //     "alternator",
-  //     "starter",
-  //     "egr-ventil",
-  //     "hladnjak",
-  //     "kondenzator",
-  //     "termostat",
-  //     "zračni-filter",
-  //     "uljni-filter",
-  //     "paljenje",
-  //     "razvodna-kapica",
-  //     "razvodnik",
-  //     "nosaci",
-  //     "opruga",
-  //     "stabilizatori",
-  //     "zračnice",
-  //     "škrge",
-  //     "zatvarači",
-  //     "rukohvati",
-  //     "gornji-nosač",
-  //     "donji-nosač",
-  //     "zračni-rezervoar",
-  //     "hladnjak-za-ulje",
-  //     "čarape-za-gume",
-  //     "upravljač",
-  //     "kablovi",
-  //     "prigušivač",
-  //     "razvodnik-goriva",
-  //     "pumpe-za-vodu",
-  //     "ležajevi",
-  //     "distributer",
-  //     "silikoni",
-  //     "električni-sistem",
-  //     "navigacija",
-  //     "kamera-za-vožnju",
-  //     "parking-senzori",
-  //     "isporuka",
-  //     "ulja-i-maziva",
-  //   ];
-
-  //   const data = ids.map((id, index) => {
-  //     const isTraktorskiProgram = traktorskiProgramIds.includes(id);
-  //     const category =
-  //       categories[Math.floor(Math.random() * categories.length)];
-  //     const opis = `${category.charAt(0).toUpperCase() + category.slice(1)} ${
-  //       index + 1
-  //     }`;
-  //     const cena = Math.floor(Math.random() * 5000) + 100;
-  //     const kataloskiBroj = Math.floor(Math.random() * 1000) + 1;
-
-  //     return { id, opis, cena, kataloski_broj: kataloskiBroj };
-  //   });
-
-  //   return data;
-  // };
-
-  // Generiši podatke
-  // const d = generateData(6000);
-
-  // console.log("createObjectFromData", createObjectFromData(jsonData));
-  // let newData = createObjectFromData([
-  //   ...d,
-  //   { cena: 99999, id: 1, kataloski_broj: 1, opis: "milos" },
-  // ]);
-
-  // Očuvaj slike iz starog JSON-a
-  // newData = preserveImages(newData, oldData);
-
-  // // Upisivanje u JSON fajl
-  // // const updatedJsonData = JSON.stringify(newData, null, 2);
-  // // fs.writeFileSync(programJson, updatedJsonData, "utf8");
-
-  res.send("ok");
 });
 
-export { pocetnaRouter };
+module.exports = pocetnaRouter;

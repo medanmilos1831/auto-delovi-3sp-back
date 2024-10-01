@@ -1,15 +1,14 @@
-import { x } from "../constants";
-
+const { x } = require("../constants");
 const multer = require("multer");
 const path = require("path");
 const fs = require("fs");
 const filePath = "src/json/onama.json";
 
 const multerStorage = multer.diskStorage({
-  destination: (req: any, file: any, cb: any) => {
+  destination: (req, file, cb) => {
     cb(null, "uploads/about/");
   },
-  filename: async (req: any, file: any, cb: any) => {
+  filename: (req, file, cb) => {
     const jsonData = fs.readFileSync(filePath, "utf8");
     let jsonArray = JSON.parse(jsonData);
 
@@ -19,7 +18,7 @@ const multerStorage = multer.diskStorage({
         "../../uploads/about",
         jsonArray.imageName
       );
-      fs.unlink(oldFilePath, (err: any) => {
+      fs.unlink(oldFilePath, (err) => {
         if (err) {
           console.error("Error deleting old image:", err);
         } else {
@@ -28,16 +27,17 @@ const multerStorage = multer.diskStorage({
       });
     }
 
-    cb(null, "image" + path.extname(file.originalname));
-    jsonArray.image =
-      `${x.URL}/uploads/about/image` + path.extname(file.originalname);
-    jsonArray.imageName = `image${path.extname(file.originalname)}`;
+    const newImageName = "image" + path.extname(file.originalname);
+    cb(null, newImageName);
+
+    jsonArray.image = `${x.URL}/uploads/about/${newImageName}`;
+    jsonArray.imageName = newImageName;
+
     const updatedJsonData = JSON.stringify(jsonArray, null, 2);
     fs.writeFileSync(filePath, updatedJsonData, "utf8");
-    return {};
   },
 });
 
 const aboutUpload = multer({ storage: multerStorage });
 
-export { aboutUpload };
+module.exports = aboutUpload;

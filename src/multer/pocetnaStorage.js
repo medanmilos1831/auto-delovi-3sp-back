@@ -1,15 +1,14 @@
-import { x } from "../constants";
-
+const { x } = require("../constants");
 const multer = require("multer");
 const path = require("path");
 const fs = require("fs");
 const filePath = "src/json/pocetna.json";
 
 const multerStorage = multer.diskStorage({
-  destination: (req: any, file: any, cb: any) => {
+  destination: (req, file, cb) => {
     cb(null, "uploads/pocetna/");
   },
-  filename: async (req: any, file: any, cb: any) => {
+  filename: (req, file, cb) => {
     const jsonData = fs.readFileSync(filePath, "utf8");
     let jsonArray = JSON.parse(jsonData);
 
@@ -19,7 +18,7 @@ const multerStorage = multer.diskStorage({
         "../../uploads/pocetna",
         jsonArray.imageName
       );
-      fs.unlink(oldFilePath, (err: any) => {
+      fs.unlink(oldFilePath, (err) => {
         if (err) {
           console.error("Error deleting old image:", err);
         } else {
@@ -35,10 +34,9 @@ const multerStorage = multer.diskStorage({
     jsonArray.imageName = `image${path.extname(file.originalname)}`;
     const updatedJsonData = JSON.stringify(jsonArray, null, 2);
     fs.writeFileSync(filePath, updatedJsonData, "utf8");
-    return {};
   },
 });
 
 const uploadPocetna = multer({ storage: multerStorage });
 
-export { uploadPocetna };
+module.exports = uploadPocetna;

@@ -1,4 +1,6 @@
-export const x = {
+const x = {
   PORT: 3001,
   URL: "http://localhost:3001",
 };
+
+module.exports = { x };
