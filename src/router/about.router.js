@@ -1,7 +1,7 @@
 const { Router } = require("express");
 const fs = require("fs");
 const aboutUpload = require("../multer/aboutStorage");
-const filePath = "src/json/onama.json";
+const filePath = require("../json/onama.json");
 
 // POST route to upload a file
 const aboutRouter = Router();
