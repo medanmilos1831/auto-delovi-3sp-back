@@ -1,7 +1,7 @@
 const { Router } = require("express");
-const fs = require("fs");
+const fs = require("fs/promises");
 const aboutUpload = require("../multer/aboutStorage");
-const filePath = require("../json/onama.json");
+const filePath = "src/json/onama.json"; // Proveri da li je putanja ispravna
 
 // POST route to upload a file
 const aboutRouter = Router();
@@ -10,9 +10,9 @@ aboutRouter.post("/upload-about", aboutUpload.single("file"), (req, res) => {
 });
 
 // POST route to update about information
-aboutRouter.post("/about", (req, res) => {
+aboutRouter.post("/about", async (req, res) => {
   try {
-    const jsonData = fs.readFileSync(filePath, "utf8");
+    const jsonData = await fs.readFile(filePath, "utf8");
     let aboutData = JSON.parse(jsonData);
 
     // Update fields with values from request body
@@ -22,20 +22,22 @@ aboutRouter.post("/about", (req, res) => {
 
     // Write updated data back to JSON file
     const updatedJsonData = JSON.stringify(aboutData, null, 2);
-    fs.writeFileSync(filePath, updatedJsonData, "utf8");
+    await fs.writeFile(filePath, updatedJsonData, "utf8");
     res.send("ok");
   } catch (error) {
+    console.log("eeee", error);
     res.status(422).send("Nesto nije ok"); // Return a 422 status code on error
   }
 });
 
 // GET route to retrieve about information
-aboutRouter.get("/about", (req, res) => {
+aboutRouter.get("/about", async (req, res) => {
   try {
-    const jsonData = fs.readFileSync(filePath, "utf8");
+    const jsonData = await fs.readFile(filePath, "utf8");
     let aboutData = JSON.parse(jsonData);
     res.send(aboutData);
   } catch (error) {
+    console.log("eeee", error);
     res.status(422).send("Nesto nije ok"); // Return a 422 status code on error
   }
 });
