@@ -40,9 +40,11 @@ rm -rf /root/auto-delovi-3sp-back.zip
 # Instalacija zavisnosti (ako imate zavisnosti)
 cd /root/auto-delovi-3sp-back
 npm install
+echo "npm install done"
 
 # Pokretanje build komande
 npm run build
+echo "npm build done"
 
 # Pokretanje aplikacije koristeći PM2
 pm2 start build/index.js --name "auto-delovi-3sp"
