@@ -46,7 +46,7 @@ echo "npm install done"
 
 
 # Pokretanje aplikacije koristeći PM2
-pm2 start build/index.js --name "auto-delovi-3sp"
+pm2 start -f build/index.js --name "auto-delovi-3sp"
 echo "Aplikacija je pokrenuta."
 ENDSSH
 
