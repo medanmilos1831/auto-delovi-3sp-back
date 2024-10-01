@@ -1,5 +1,6 @@
 const { Router } = require("express");
 const fs = require("fs/promises");
+const path = require("path");
 const aboutUpload = require("../multer/aboutStorage");
 const filePath = "src/json/onama.json"; // Proveri da li je putanja ispravna
 
@@ -33,12 +34,14 @@ aboutRouter.post("/about", async (req, res) => {
 // GET route to retrieve about information
 aboutRouter.get("/about", async (req, res) => {
   try {
+    const filePath = path.join(__dirname, "../json/onama.json");
+
     const jsonData = await fs.readFile(filePath, "utf8");
     let aboutData = JSON.parse(jsonData);
     res.send(aboutData);
   } catch (error) {
     console.log("eeee", error);
-    res.status(422).send("Nesto nije ok"); // Return a 422 status code on error
+    res.status(422).send(error); // Return a 422 status code on error
   }
 });
 
