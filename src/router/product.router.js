@@ -182,7 +182,6 @@ productRouter.post("/sync", async (req, res) => {
     // Čitanje JSON fajla
     const jsonData = await fsSync.readFileSync(filePath, "utf8");
     const jsonObject = JSON.parse(jsonData);
-    console.log("jsonData", jsonObject);
 
     // Iteriranje kroz sve programe i kategorije
     Object.entries(jsonObject).forEach(async ([programSlug, program]) => {
@@ -197,10 +196,12 @@ productRouter.post("/sync", async (req, res) => {
                   "../../uploads/product",
                   `${id}.jpg`
                 );
+                // console.log("potentialImagePath", potentialImagePath);
 
                 if (fsSync.existsSync(potentialImagePath)) {
                   product.imageName = `${id}.jpg`;
-                  product.image = `${URL}/uploads/product/` + product.imageName;
+                  product.image =
+                    `${URL}${potentialImagePath}` + product.imageName;
                 }
               }
             }
