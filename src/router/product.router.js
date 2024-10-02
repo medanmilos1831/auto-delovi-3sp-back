@@ -1,9 +1,11 @@
 const { Router } = require("express");
-const slugify = require("slugify"); // Use require for consistency
+const { URL } = require("../constants");
 const uploadProduct = require("../multer/productStorage");
 const nodemailer = require("nodemailer");
-const fs = require("fs");
-const filePath = "src/json/program.json";
+const fs = require("fs/promises");
+const fsSync = require("fs");
+const path = require("path");
+const filePath = path.join(__dirname, "../json/program.json");
 
 const productRouter = Router();
 
@@ -15,115 +17,9 @@ productRouter.post(
   }
 );
 
-productRouter.post("/product", async (req, res) => {
-  try {
-    const jsonData = fs.readFileSync(filePath, "utf8");
-    let jsonArray = JSON.parse(jsonData);
-    let slug = slugify(req.body.naziv, {
-      lower: true,
-      strict: true,
-    });
-    if (
-      jsonArray[req.body.programId].kategorije[req.body.categoryId.value]
-        .prozivodi[req.body.naziv]
-    ) {
-      throw {
-        code: 422,
-        message: "vec postoji proizvod",
-      };
-    }
-    jsonArray[req.body.programId].kategorije[
-      req.body.categoryId.value
-    ].prozivodi = {
-      ...jsonArray[req.body.programId].kategorije[req.body.categoryId.value]
-        .prozivodi,
-      [slug]: {
-        naziv: req.body.naziv ?? null,
-        opis: req.body.opis ?? null,
-        caption: req.body.caption ?? null,
-        cena: req.body.cena ?? null,
-        kataloski_broj: req.body.kataloski_broj ?? null,
-        image: null,
-        imageName: null,
-        items: req.body.items ?? null,
-        slug: slugify(req.body.naziv, {
-          lower: true,
-          strict: true,
-        }),
-      },
-    };
-    const updatedJsonData = JSON.stringify(jsonArray, null, 2);
-    fs.writeFileSync(filePath, updatedJsonData, "utf8");
-    res.send("ok");
-  } catch (error) {
-    res.status(422).send(error.message);
-  }
-});
-
-productRouter.put("/product/:id", async (req, res) => {
-  try {
-    const jsonData = fs.readFileSync(filePath, "utf8");
-    let jsonArray = JSON.parse(jsonData);
-
-    const {
-      naziv,
-      caption,
-      cena,
-      opis,
-      categoryId,
-      programId,
-      items,
-      kataloski_broj,
-    } = req.body;
-
-    const productId = req.params.id;
-
-    const removeProductFromCategory = (program, category) => {
-      const categoryObj = jsonArray[program]?.kategorije[category];
-      if (categoryObj && categoryObj.prozivodi[productId]) {
-        delete categoryObj.prozivodi[productId];
-      }
-    };
-
-    Object.keys(jsonArray).forEach((program) => {
-      Object.keys(jsonArray[program].kategorije).forEach((category) => {
-        removeProductFromCategory(program, category);
-      });
-    });
-
-    if (!jsonArray[programId].kategorije[categoryId.value]) {
-      jsonArray[programId].kategorije[categoryId.value] = {
-        slug: categoryId.value,
-        naziv: categoryId.label,
-        prozivodi: {},
-        image: null,
-        imageName: null,
-      };
-    }
-
-    jsonArray[programId].kategorije[categoryId.value].prozivodi[productId] = {
-      naziv,
-      opis,
-      caption,
-      cena,
-      kataloski_broj,
-      image: null,
-      imageName: null,
-      items,
-      slug: naziv,
-    };
-
-    fs.writeFileSync(filePath, JSON.stringify(jsonArray, null, 2), "utf8");
-
-    res.status(200).send("Proizvod je uspešno premešten.");
-  } catch (error) {
-    res.status(500).send(error.message);
-  }
-});
-
 productRouter.get("/product", async (req, res) => {
   try {
-    const jsonData = fs.readFileSync(filePath, "utf8");
+    const jsonData = await fs.readFile(filePath, "utf8");
     let jsonArray = JSON.parse(jsonData);
     const uniqueProducts = [];
     const seenProducts = new Map();
@@ -183,31 +79,9 @@ productRouter.get("/product", async (req, res) => {
   }
 });
 
-productRouter.delete("/product/:id", async (req, res) => {
-  try {
-    const jsonData = fs.readFileSync(filePath, "utf8");
-    let jsonArray = JSON.parse(jsonData);
-    const productIdToDelete = req.params.id;
-
-    Object.entries(jsonArray).forEach(([programSlug, program]) => {
-      Object.entries(program.kategorije).forEach(([categorySlug, category]) => {
-        if (category.prozivodi && category.prozivodi[productIdToDelete]) {
-          delete category.prozivodi[productIdToDelete];
-        }
-      });
-    });
-
-    const updatedJsonData = JSON.stringify(jsonArray, null, 2);
-    fs.writeFileSync(updatedJsonData, "utf8");
-    res.send("Product deleted successfully");
-  } catch (error) {
-    res.status(500).send(error.message);
-  }
-});
-
 productRouter.get("/product/:program/:category/:product", async (req, res) => {
   try {
-    const jsonData = fs.readFileSync(filePath, "utf8");
+    const jsonData = await fs.read(filePath, "utf8");
     let jsonArray = JSON.parse(jsonData);
 
     const program = jsonArray[req.params.program];
@@ -300,6 +174,46 @@ productRouter.post("/naruci", async (req, res) => {
   } catch (error) {
     console.error("Error sending email:", error);
     res.status(500).send("Došlo je do greške prilikom slanja narudžbe.");
+  }
+});
+
+productRouter.post("/sync", async (req, res) => {
+  try {
+    // Čitanje JSON fajla
+    const jsonData = await fsSync.readFileSync(filePath, "utf8");
+    const jsonObject = JSON.parse(jsonData);
+    console.log("jsonData", jsonObject);
+
+    // Iteriranje kroz sve programe i kategorije
+    Object.entries(jsonObject).forEach(async ([programSlug, program]) => {
+      Object.entries(program.kategorije).forEach(
+        async ([categorySlug, category]) => {
+          Object.entries(category.prozivodi).forEach(
+            async ([productSlug, product]) => {
+              const id = product.id;
+              if (id) {
+                const potentialImagePath = path.join(
+                  __dirname,
+                  "../../uploads/product",
+                  `${id}.jpg`
+                );
+
+                if (fsSync.existsSync(potentialImagePath)) {
+                  product.imageName = `${id}.jpg`;
+                  product.image = `${URL}/uploads/product/` + product.imageName;
+                }
+              }
+            }
+          );
+        }
+      );
+    });
+
+    const updatedJsonData = JSON.stringify(jsonObject, null, 2);
+    fsSync.writeFileSync(filePath, updatedJsonData, "utf8");
+    res.send("ok");
+  } catch (error) {
+    console.log("heheheheheh", error);
   }
 });
 

@@ -118,14 +118,13 @@ pocetnaRouter.post(
 
       const createObjectFromData = (data) => {
         const result = {};
-        data.forEach((item) => {
+        data.forEach((item, i) => {
           const key =
             item.ARTIKAL_ID > 50000 && item.ARTIKAL_ID < 60000
               ? "traktorski-program"
               : "auto-program";
           const firstWord = item.NAZIV.split(" ")[0].toLowerCase();
           const productSlug = item.NAZIV.toLowerCase().replace(/\s+/g, "-");
-
           if (!result[key]) {
             result[key] = {
               naziv:
@@ -133,69 +132,136 @@ pocetnaRouter.post(
               caption: null,
               desc: null,
               slug: key,
-              kategorije: {
-                [firstWord]: {
-                  slug: firstWord,
-                  naziv: firstWord.charAt(0).toUpperCase() + firstWord.slice(1),
-                  caption: null,
-                  desc: null,
-                  prozivodi: {
-                    [productSlug]: {
-                      naziv: item.NAZIV,
-                      opis: item.NAZIV,
-                      caption: null,
-                      cena: item.PRODAJNA_SA_PDV,
-                      kataloski_broj: item.SIF_PROIZVODJACA,
-                      image: null,
-                      imageName: null,
-                      items: null,
-                      slug: productSlug,
-                    },
-                  },
-                  imageName: null,
-                  image: null,
-                },
-              },
-              imageName: null,
-              image: null,
+              kategorije: {},
             };
-          } else {
-            if (!result[key].kategorije[firstWord]) {
-              result[key].kategorije[firstWord] = {
-                slug: firstWord,
-                naziv: firstWord.charAt(0).toUpperCase() + firstWord.slice(1),
-                caption: null,
-                desc: null,
-                prozivodi: {
-                  [productSlug]: {
-                    naziv: item.NAZIV,
-                    opis: item.NAZIV,
-                    caption: null,
-                    cena: item.PRODAJNA_SA_PDV,
-                    kataloski_broj: item.SIF_PROIZVODJACA,
-                    image: null,
-                    imageName: null,
-                    items: null,
-                    slug: productSlug,
-                  },
-                },
-                imageName: null,
-                image: null,
-              };
-            } else {
-              result[key].kategorije[firstWord].prozivodi[productSlug] = {
-                naziv: item.NAZIV,
-                opis: item.NAZIV,
-                caption: null,
-                cena: item.PRODAJNA_SA_PDV,
-                kataloski_broj: item.SIF_PROIZVODJACA,
-                image: null,
-                imageName: null,
-                items: null,
-                slug: productSlug,
-              };
-            }
           }
+          // if (!result[key]) {
+          //   result[key] = {
+          //     naziv:
+          //       key === "auto-program" ? "auto program" : "traktorski program",
+          //     caption: null,
+          //     desc: null,
+          //     slug: key,
+          //     kategorije: {
+          //       [firstWord]: {
+          //         slug: firstWord,
+          //         naziv: firstWord.charAt(0).toUpperCase() + firstWord.slice(1),
+          //         caption: null,
+          //         desc: null,
+          //         prozivodi: {
+          //           [productSlug]: {
+          // naziv: item.NAZIV,
+          // opis: item.NAZIV,
+          // caption: null,
+          // cena: item.PRODAJNA_SA_PDV,
+          // kataloski_broj: item.SIF_PROIZVODJACA,
+          // image: null,
+          // imageName: null,
+          // items: null,
+          // slug: productSlug,
+          // id: item.ARTIKAL_ID,
+          //           },
+          //         },
+          //         imageName: null,
+          //         image: null,
+          //       },
+          //     },
+          //     imageName: null,
+          //     image: null,
+          //   };
+          // } else {
+          //   if (item.ARTIKAL_ID === 54) {
+          //     console.log("fdfdfdfdfd", item.ARTIKAL_ID, item);
+          //   }
+          //   if (!result[key].kategorije[firstWord]) {
+          //     result[key].kategorije[firstWord] = {
+          //       slug: firstWord,
+          //       naziv: firstWord.charAt(0).toUpperCase() + firstWord.slice(1),
+          //       caption: null,
+          //       desc: null,
+          //       prozivodi: {
+          //         [productSlug]: {
+          //           naziv: item.NAZIV,
+          //           opis: item.NAZIV,
+          //           caption: null,
+          //           cena: item.PRODAJNA_SA_PDV,
+          //           kataloski_broj: item.SIF_PROIZVODJACA,
+          //           image: null,
+          //           imageName: null,
+          //           items: null,
+          //           slug: productSlug,
+          //           id: item.ARTIKAL_ID,
+          //         },
+          //       },
+          //       imageName: null,
+          //       image: null,
+          //     };
+          //   } else {
+          //     result[key].kategorije[firstWord].prozivodi[productSlug] = {
+          //       naziv: item.NAZIV,
+          //       opis: item.NAZIV,
+          //       caption: null,
+          //       cena: item.PRODAJNA_SA_PDV,
+          //       kataloski_broj: item.SIF_PROIZVODJACA,
+          //       image: null,
+          //       imageName: null,
+          //       items: null,
+          //       slug: productSlug,
+          //       id: item.ARTIKAL_ID,
+          //     };
+          //   }
+          // }
+        });
+
+        data.forEach((item, i) => {
+          const key =
+            item.ARTIKAL_ID > 50000 && item.ARTIKAL_ID < 60000
+              ? "traktorski-program"
+              : "auto-program";
+          const firstWord = item.NAZIV.split(" ")[0].toLowerCase();
+          const productSlug = item.NAZIV.toLowerCase().replace(/\s+/g, "-");
+          if (!result[key].kategorije[firstWord]) {
+            result[key].kategorije[firstWord] = {
+              slug: firstWord,
+              naziv: firstWord.charAt(0).toUpperCase() + firstWord.slice(1),
+              caption: null,
+              desc: null,
+              prozivodi: {},
+            };
+          }
+        });
+
+        data.forEach((item, i) => {
+          const key =
+            item.ARTIKAL_ID > 50000 && item.ARTIKAL_ID < 60000
+              ? "traktorski-program"
+              : "auto-program";
+          const firstWord = item.NAZIV.split(" ")[0].toLowerCase();
+          const productSlug = item.NAZIV.toLowerCase().replace(/\s+/g, "-");
+          // if (!result[key].kategorije[firstWord].prozivodi) {
+          //   result[key].kategorije[firstWord] = {
+          //     slug: firstWord,
+          //     naziv: firstWord.charAt(0).toUpperCase() + firstWord.slice(1),
+          //     caption: null,
+          //     desc: null,
+          //     prozivodi: {},
+          //   };
+          // }
+          result[key].kategorije[firstWord].prozivodi = {
+            ...result[key].kategorije[firstWord].prozivodi,
+            [`${productSlug}_${item.ARTIKAL_ID}`]: {
+              naziv: item.NAZIV,
+              opis: item.NAZIV,
+              caption: null,
+              cena: item.PRODAJNA_SA_PDV,
+              kataloski_broj: item.SIF_PROIZVODJACA,
+              image: null,
+              imageName: null,
+              items: null,
+              slug: `${productSlug}_${item.ARTIKAL_ID}`,
+              id: item.ARTIKAL_ID,
+            },
+          };
         });
 
         return result;
