@@ -1,4 +1,5 @@
 const express = require("express");
+const path = require("path");
 const cors = require("cors");
 // const { kontaktRouter, aboutRouter } = require("./router");
 const programRouter = require("./router/program.router");
@@ -20,7 +21,8 @@ app.use(productRouter);
 app.use(pocetnaRouter);
 app.use(kontaktRouter);
 app.use(aboutRouter);
-app.use("/uploads", express.static("uploads"));
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+// app.use("/uploads", express.static("uploads"));
 
 app.listen(x.PORT, "0.0.0.0", () => {
   console.log(`Server is running at http://localhost:${x.PORT}`);

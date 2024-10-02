@@ -196,12 +196,11 @@ productRouter.post("/sync", async (req, res) => {
                   "../../uploads/product",
                   `${id}.jpg`
                 );
-                // console.log("potentialImagePath", potentialImagePath);
+                // console.log('potentialImagePath', potentialImagePath)
 
                 if (fsSync.existsSync(potentialImagePath)) {
                   product.imageName = `${id}.jpg`;
-                  product.image =
-                    `${URL}${potentialImagePath}` + product.imageName;
+                  product.image = `${URL}/uploads/product/` + product.imageName;
                 }
               }
             }
