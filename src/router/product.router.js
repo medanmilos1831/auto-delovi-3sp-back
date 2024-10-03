@@ -2,7 +2,7 @@ const { Router } = require("express");
 const { URL } = require("../constants");
 const uploadProduct = require("../multer/productStorage");
 const nodemailer = require("nodemailer");
-const fs = require("fs/promises");
+const fs = require("fs");
 const fsSync = require("fs");
 const path = require("path");
 const filePath = path.join(__dirname, "../json/program.json");
@@ -19,7 +19,7 @@ productRouter.post(
 
 productRouter.get("/product", async (req, res) => {
   try {
-    const jsonData = await fs.readFile(filePath, "utf8");
+    const jsonData = await fs.readFileSync(filePath, "utf8");
     let jsonArray = JSON.parse(jsonData);
     const uniqueProducts = [];
     const seenProducts = new Map();
@@ -81,7 +81,7 @@ productRouter.get("/product", async (req, res) => {
 
 productRouter.get("/product/:program/:category/:product", async (req, res) => {
   try {
-    const jsonData = await fs.read(filePath, "utf8");
+    const jsonData = await fs.readFileSync(filePath, "utf8");
     let jsonArray = JSON.parse(jsonData);
 
     const program = jsonArray[req.params.program];
@@ -106,6 +106,7 @@ productRouter.get("/product/:program/:category/:product", async (req, res) => {
     }
     return res.send(cat.prozivodi[req.params.product]);
   } catch (error) {
+    console.log("eeeee", error);
     res.status(error.code).send(error.message);
   }
 });

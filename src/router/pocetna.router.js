@@ -135,82 +135,6 @@ pocetnaRouter.post(
               kategorije: {},
             };
           }
-          // if (!result[key]) {
-          //   result[key] = {
-          //     naziv:
-          //       key === "auto-program" ? "auto program" : "traktorski program",
-          //     caption: null,
-          //     desc: null,
-          //     slug: key,
-          //     kategorije: {
-          //       [firstWord]: {
-          //         slug: firstWord,
-          //         naziv: firstWord.charAt(0).toUpperCase() + firstWord.slice(1),
-          //         caption: null,
-          //         desc: null,
-          //         prozivodi: {
-          //           [productSlug]: {
-          // naziv: item.NAZIV,
-          // opis: item.NAZIV,
-          // caption: null,
-          // cena: item.PRODAJNA_SA_PDV,
-          // kataloski_broj: item.SIF_PROIZVODJACA,
-          // image: null,
-          // imageName: null,
-          // items: null,
-          // slug: productSlug,
-          // id: item.ARTIKAL_ID,
-          //           },
-          //         },
-          //         imageName: null,
-          //         image: null,
-          //       },
-          //     },
-          //     imageName: null,
-          //     image: null,
-          //   };
-          // } else {
-          //   if (item.ARTIKAL_ID === 54) {
-          //     console.log("fdfdfdfdfd", item.ARTIKAL_ID, item);
-          //   }
-          //   if (!result[key].kategorije[firstWord]) {
-          //     result[key].kategorije[firstWord] = {
-          //       slug: firstWord,
-          //       naziv: firstWord.charAt(0).toUpperCase() + firstWord.slice(1),
-          //       caption: null,
-          //       desc: null,
-          //       prozivodi: {
-          //         [productSlug]: {
-          //           naziv: item.NAZIV,
-          //           opis: item.NAZIV,
-          //           caption: null,
-          //           cena: item.PRODAJNA_SA_PDV,
-          //           kataloski_broj: item.SIF_PROIZVODJACA,
-          //           image: null,
-          //           imageName: null,
-          //           items: null,
-          //           slug: productSlug,
-          //           id: item.ARTIKAL_ID,
-          //         },
-          //       },
-          //       imageName: null,
-          //       image: null,
-          //     };
-          //   } else {
-          //     result[key].kategorije[firstWord].prozivodi[productSlug] = {
-          //       naziv: item.NAZIV,
-          //       opis: item.NAZIV,
-          //       caption: null,
-          //       cena: item.PRODAJNA_SA_PDV,
-          //       kataloski_broj: item.SIF_PROIZVODJACA,
-          //       image: null,
-          //       imageName: null,
-          //       items: null,
-          //       slug: productSlug,
-          //       id: item.ARTIKAL_ID,
-          //     };
-          //   }
-          // }
         });
 
         data.forEach((item, i) => {
@@ -238,15 +162,7 @@ pocetnaRouter.post(
               : "auto-program";
           const firstWord = item.NAZIV.split(" ")[0].toLowerCase();
           const productSlug = item.NAZIV.toLowerCase().replace(/\s+/g, "-");
-          // if (!result[key].kategorije[firstWord].prozivodi) {
-          //   result[key].kategorije[firstWord] = {
-          //     slug: firstWord,
-          //     naziv: firstWord.charAt(0).toUpperCase() + firstWord.slice(1),
-          //     caption: null,
-          //     desc: null,
-          //     prozivodi: {},
-          //   };
-          // }
+
           result[key].kategorije[firstWord].prozivodi = {
             ...result[key].kategorije[firstWord].prozivodi,
             [`${productSlug}_${item.ARTIKAL_ID}`]: {

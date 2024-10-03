@@ -2,7 +2,9 @@ const { Router } = require("express");
 const slugify = require("slugify");
 const uploadProgram = require("../multer/programStorage");
 const fs = require("fs");
-const filePath = "src/json/program.json";
+const path = require("path");
+
+const filePath = path.join(__dirname, "../json/program.json");
 
 const programRouter = Router();
 
@@ -43,7 +45,14 @@ programRouter.get("/program", async (req, res) => {
     const jsonData = fs.readFileSync(filePath, "utf8");
     let jsonArray = JSON.parse(jsonData);
     res.send(
-      Object.keys(jsonArray).length === 0 ? [] : Object.values(jsonArray)
+      Object.keys(jsonArray).length === 0
+        ? []
+        : (() => {
+            return Object.keys(jsonArray).map((key) => {
+              const { kategorije, ...rest } = jsonArray[key];
+              return rest;
+            });
+          })()
     );
   } catch (error) {
     res.status(error.code || 500).send(error.message);

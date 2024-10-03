@@ -2,7 +2,9 @@ const express = require("express");
 const slugify = require("slugify");
 const uploadCategory = require("../multer/categoryStorage");
 const fs = require("fs");
-const filePath = "src/json/program.json";
+const path = require("path");
+
+const filePath = path.join(__dirname, "../json/program.json");
 
 const categoryRoute = express.Router();
 
@@ -234,6 +236,7 @@ categoryRoute.get("/category", (req, res) => {
 
     res.send(extractUniqueCategoriesWithProgram(jsonArray));
   } catch (error) {
+    console.log("eeeeeee", error);
     res.status(error.code).send(error.message);
   }
 });

@@ -1,9 +1,8 @@
-const { x } = require("../constants");
+const { URL } = require("../constants");
 const multer = require("multer");
 const path = require("path");
 const fs = require("fs");
-
-const filePath = "src/json/program.json";
+const filePath = path.join(__dirname, "../json/program.json");
 
 function findCategoryBySlug(slug) {
   const jsonData = fs.readFileSync(filePath, "utf8");
@@ -22,7 +21,8 @@ function findCategoryBySlug(slug) {
 
 const multerStorage = multer.diskStorage({
   destination: (req, file, cb) => {
-    cb(null, "uploads/category/");
+    const uploadPath = path.join(__dirname, "../../uploads/category/");
+    cb(null, uploadPath);
   },
   filename: (req, file, cb) => {
     const jsonData = fs.readFileSync(filePath, "utf8");
@@ -50,7 +50,7 @@ const multerStorage = multer.diskStorage({
       Object.entries(program.kategorije).forEach(([categorySlug, category]) => {
         if (category.slug === req.body.slug) {
           category.imageName = uniqueSuffix + path.extname(file.originalname); // Update imageName
-          category.image = `${x.URL}/uploads/category/${
+          category.image = `${URL}/uploads/category/${
             uniqueSuffix + path.extname(file.originalname)
           }`;
         }

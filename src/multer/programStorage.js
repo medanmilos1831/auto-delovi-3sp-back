@@ -1,10 +1,9 @@
-const { x } = require("../constants");
-const express = require("express");
+const { URL } = require("../constants");
 const multer = require("multer");
 const path = require("path");
 const fs = require("fs");
 
-const filePath = "src/json/program.json";
+const filePath = path.join(__dirname, "../json/program.json");
 
 // Function to find a program by slug
 function findProgramBySlug(slug) {
@@ -23,7 +22,8 @@ function findProgramBySlug(slug) {
 
 const multerStorage = multer.diskStorage({
   destination: (req, file, cb) => {
-    cb(null, "uploads/program/");
+    const uploadPath = path.join(__dirname, "../../uploads/program/");
+    cb(null, uploadPath);
   },
   filename: (req, file, cb) => {
     const jsonData = fs.readFileSync(filePath, "utf8");
@@ -35,7 +35,7 @@ const multerStorage = multer.diskStorage({
     if (program && program.imageName) {
       const oldFilePath = path.join(
         __dirname,
-        "../../uploads/program",
+        "../uploads/program",
         program.imageName
       );
       fs.unlink(oldFilePath, (err) => {
@@ -51,7 +51,7 @@ const multerStorage = multer.diskStorage({
     Object.entries(jsonArray).forEach(([programSlug, program]) => {
       if (program.slug === req.body.slug) {
         program.imageName = uniqueSuffix + path.extname(file.originalname); // Update imageName
-        program.image = `${x.URL}/uploads/program/${
+        program.image = `${URL}/uploads/program/${
           uniqueSuffix + path.extname(file.originalname)
         }`;
       }
