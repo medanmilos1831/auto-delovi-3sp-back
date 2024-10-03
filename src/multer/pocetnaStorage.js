@@ -1,12 +1,13 @@
-const { x } = require("../constants");
+const { URL } = require("../constants");
 const multer = require("multer");
 const path = require("path");
 const fs = require("fs");
-const filePath = "src/json/pocetna.json";
+const filePath = path.join(__dirname, "../json/pocetna.json");
 
 const multerStorage = multer.diskStorage({
   destination: (req, file, cb) => {
-    cb(null, "uploads/pocetna/");
+    const uploadPath = path.join(__dirname, "../../uploads/pocetna/");
+    cb(null, uploadPath);
   },
   filename: (req, file, cb) => {
     const jsonData = fs.readFileSync(filePath, "utf8");
@@ -15,7 +16,7 @@ const multerStorage = multer.diskStorage({
     if (jsonArray.imageName) {
       const oldFilePath = path.join(
         __dirname,
-        "../../uploads/pocetna",
+        "../uploads/pocetna",
         jsonArray.imageName
       );
       fs.unlink(oldFilePath, (err) => {
@@ -30,7 +31,7 @@ const multerStorage = multer.diskStorage({
     cb(null, "image" + path.extname(file.originalname));
 
     jsonArray.image =
-      `${x.URL}/uploads/pocetna/image` + path.extname(file.originalname);
+      `${URL}/uploads/pocetna/image` + path.extname(file.originalname);
     jsonArray.imageName = `image${path.extname(file.originalname)}`;
     const updatedJsonData = JSON.stringify(jsonArray, null, 2);
     fs.writeFileSync(filePath, updatedJsonData, "utf8");

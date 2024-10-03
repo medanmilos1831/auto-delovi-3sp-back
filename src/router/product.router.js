@@ -186,6 +186,16 @@ productRouter.post("/sync", async (req, res) => {
 
     // Iteriranje kroz sve programe i kategorije
     Object.entries(jsonObject).forEach(async ([programSlug, program]) => {
+      const potentialImagePathForProgram = path.join(
+        __dirname,
+        "../../uploads/program",
+        `${programSlug}.jpg`
+      );
+      console.log("potentialImagePathForProgram", potentialImagePathForProgram);
+      if (fsSync.existsSync(potentialImagePathForProgram)) {
+        program.imageName = `${programSlug}.jpg`;
+        program.image = `${URL}/uploads/program/` + program.imageName;
+      }
       Object.entries(program.kategorije).forEach(
         async ([categorySlug, category]) => {
           Object.entries(category.prozivodi).forEach(
@@ -197,11 +207,15 @@ productRouter.post("/sync", async (req, res) => {
                   "../../uploads/product",
                   `${id}.jpg`
                 );
-                // console.log('potentialImagePath', potentialImagePath)
 
                 if (fsSync.existsSync(potentialImagePath)) {
                   product.imageName = `${id}.jpg`;
                   product.image = `${URL}/uploads/product/` + product.imageName;
+                  if (!category.image) {
+                    category.imageName = `${id}.jpg`;
+                    category.image =
+                      `${URL}/uploads/product/` + product.imageName;
+                  }
                 }
               }
             }
@@ -214,7 +228,8 @@ productRouter.post("/sync", async (req, res) => {
     fsSync.writeFileSync(filePath, updatedJsonData, "utf8");
     res.send("ok");
   } catch (error) {
-    console.log("heheheheheh", error);
+    console.log("eeeeeee", error);
+    res.send("sync nije prosao ok");
   }
 });
 

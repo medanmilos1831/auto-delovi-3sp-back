@@ -1,6 +1,6 @@
 {
   "headline": "dsadasdas",
   "desc": "Sample description for Pocetna model",
-  "image": "http://localhost:3001/uploads/pocetna/image.jpg",
-  "imageName": "image.jpg"
+  "image": "http://localhost:3001/uploads/pocetna/image.png",
+  "imageName": "image.png"
 }
