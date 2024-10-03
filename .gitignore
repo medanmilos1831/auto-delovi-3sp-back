@@ -2,3 +2,4 @@ node_modules/
 uploads/
 deploy.sh
 upload-product.sh
+deploy-code.sh
