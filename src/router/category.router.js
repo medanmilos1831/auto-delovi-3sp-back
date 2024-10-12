@@ -4,7 +4,7 @@ const uploadCategory = require("../multer/categoryStorage");
 const fs = require("fs");
 const path = require("path");
 
-const filePath = path.join(__dirname, "../json/program.json");
+const filePath = path.join(__dirname, "../../json/program.json");
 
 const categoryRoute = express.Router();
 

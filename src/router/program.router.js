@@ -4,7 +4,7 @@ const uploadProgram = require("../multer/programStorage");
 const fs = require("fs");
 const path = require("path");
 
-const filePath = path.join(__dirname, "../json/program.json");
+const filePath = path.join(__dirname, "../../json/program.json");
 
 const programRouter = Router();
 

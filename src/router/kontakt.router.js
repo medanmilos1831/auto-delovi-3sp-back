@@ -2,7 +2,7 @@ const { Router } = require("express");
 const fs = require("fs/promises");
 const path = require("path");
 
-const filePath = path.join(__dirname, "../json/kontakt.json");
+const filePath = path.join(__dirname, "../../json/kontakt.json");
 
 // POST route to update contact information
 const kontakRouter = Router();

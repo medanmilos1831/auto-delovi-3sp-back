@@ -5,7 +5,7 @@ const nodemailer = require("nodemailer");
 const fs = require("fs");
 const fsSync = require("fs");
 const path = require("path");
-const filePath = path.join(__dirname, "../json/program.json");
+const filePath = path.join(__dirname, "../../json/program.json");
 
 const productRouter = Router();
 

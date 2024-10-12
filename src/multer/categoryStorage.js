@@ -2,7 +2,7 @@ const { URL } = require("../constants");
 const multer = require("multer");
 const path = require("path");
 const fs = require("fs");
-const filePath = path.join(__dirname, "../json/program.json");
+const filePath = path.join(__dirname, "../../json/program.json");
 
 function findCategoryBySlug(slug) {
   const jsonData = fs.readFileSync(filePath, "utf8");

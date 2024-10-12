@@ -6,8 +6,8 @@ const path = require("path");
 const xlsx = require("xlsx"); // Include this if you're using it for handling Excel files
 
 // Define file paths
-const filePath = path.join(__dirname, "../json/pocetna.json");
-const programJson = path.join(__dirname, "../json/program.json");
+const filePath = path.join(__dirname, "../../json/pocetna.json");
+const programJson = path.join(__dirname, "../../json/program.json");
 
 // Create router instance
 const pocetnaRouter = Router();

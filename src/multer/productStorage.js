@@ -1,5 +1,5 @@
 const { x } = require("../constants");
-const filePath = "src/json/program.json";
+const filePath = "../../json/program.json";
 const multer = require("multer");
 const path = require("path");
 const fs = require("fs");
