@@ -52,13 +52,7 @@ const multerStorage = multer.diskStorage({
         "../../uploads/product",
         product.imageName
       );
-      fs.unlink(oldFilePath, (err) => {
-        if (err) {
-          console.error("Error deleting old image:", err);
-        } else {
-          console.log("Old image deleted successfully");
-        }
-      });
+      fs.unlink(oldFilePath);
     }
     updateProductImageName(
       req.body.slug,

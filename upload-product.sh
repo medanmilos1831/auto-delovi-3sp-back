@@ -27,22 +27,22 @@ echo "Prebacivanje $LOCAL_ZIP_FILE na server $REMOTE_HOST u $REMOTE_ZIP_PATH"
 sshpass -p $REMOTE_PASSWORD scp -o StrictHostKeyChecking=no $LOCAL_ZIP_FILE $REMOTE_USER@$REMOTE_HOST:$REMOTE_ZIP_PATH
 
 # Ulazak na server i izvršavanje komandi
-echo "Povezivanje na server $REMOTE_HOST"
-sshpass -p $REMOTE_PASSWORD ssh -o StrictHostKeyChecking=no $REMOTE_USER@$REMOTE_HOST <<ENDSSH
-    echo "Povezan sam na server"
+# echo "Povezivanje na server $REMOTE_HOST"
+# sshpass -p $REMOTE_PASSWORD ssh -o StrictHostKeyChecking=no $REMOTE_USER@$REMOTE_HOST <<ENDSSH
+#     echo "Povezan sam na server"
     
-    # Brisanje postojećeg 'product' foldera
-    if [ -d "$REMOTE_PROJECT_PATH/uploads/product" ]; then
-        rm -rf "$REMOTE_PROJECT_PATH/uploads/product"
-        echo "Postojeći folder 'product' je obrisan."
-    else
-        echo "Folder 'product' ne postoji."
-    fi
+#     # Brisanje postojećeg 'product' foldera
+#     if [ -d "$REMOTE_PROJECT_PATH/uploads/product" ]; then
+#         rm -rf "$REMOTE_PROJECT_PATH/uploads/product"
+#         echo "Postojeći folder 'product' je obrisan."
+#     else
+#         echo "Folder 'product' ne postoji."
+#     fi
 
-    # Raspakivanje ZIP fajla unutar 'uploads/product'
-    mkdir -p "$REMOTE_PROJECT_PATH/uploads/product"
-    unzip -o "$REMOTE_ZIP_PATH" -d "$REMOTE_PROJECT_PATH/uploads/product/"
-    echo "ZIP fajl je raspakovan u '$REMOTE_PROJECT_PATH/uploads/product/'."
-ENDSSH
+#     # Raspakivanje ZIP fajla unutar 'uploads/product'
+#     mkdir -p "$REMOTE_PROJECT_PATH/uploads/product"
+#     unzip -o "$REMOTE_ZIP_PATH" -d "$REMOTE_PROJECT_PATH/uploads/product/"
+#     echo "ZIP fajl je raspakovan u '$REMOTE_PROJECT_PATH/uploads/product/'."
+# ENDSSH
 
 echo "Prebacivanje i raspakivanje završeno!"

@@ -8,7 +8,9 @@
     "dev": "nodemon src/index.js",
     "deploy": "./deploy.sh",
     "deploy-code": "./upload-code.sh",
-    "deploy-images": "./upload-product.sh"
+    "deploy-images": "./upload-product.sh",
+    "build": "babel src -d dist",
+    "start": "node dist/index.js"
   },
   "keywords": [],
   "author": "",
@@ -28,6 +30,9 @@
     "xlsx": "^0.18.5"
   },
   "devDependencies": {
+    "@babel/cli": "^7.25.7",
+    "@babel/core": "^7.25.8",
+    "@babel/preset-env": "^7.25.8",
     "nodemon": "^3.1.7"
   }
 }

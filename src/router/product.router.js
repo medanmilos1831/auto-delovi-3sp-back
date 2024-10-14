@@ -106,7 +106,6 @@ productRouter.get("/product/:program/:category/:product", async (req, res) => {
     }
     return res.send(cat.prozivodi[req.params.product]);
   } catch (error) {
-    console.log("eeeee", error);
     res.status(error.code).send(error.message);
   }
 });
@@ -191,7 +190,6 @@ productRouter.post("/sync", async (req, res) => {
         "../../uploads/program",
         `${programSlug}.jpg`
       );
-      console.log("potentialImagePathForProgram", potentialImagePathForProgram);
       if (fsSync.existsSync(potentialImagePathForProgram)) {
         program.imageName = `${programSlug}.jpg`;
         program.image = `${URL}/uploads/program/` + program.imageName;
@@ -227,10 +225,7 @@ productRouter.post("/sync", async (req, res) => {
     const updatedJsonData = JSON.stringify(jsonObject, null, 2);
     fsSync.writeFileSync(filePath, updatedJsonData, "utf8");
     res.send("ok");
-  } catch (error) {
-    console.log("eeeeeee", error);
-    res.send("sync nije prosao ok");
-  }
+  } catch (error) {}
 });
 
 module.exports = productRouter;

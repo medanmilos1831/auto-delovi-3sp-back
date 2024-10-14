@@ -236,7 +236,6 @@ categoryRoute.get("/category", (req, res) => {
 
     res.send(extractUniqueCategoriesWithProgram(jsonArray));
   } catch (error) {
-    console.log("eeeeeee", error);
     res.status(error.code).send(error.message);
   }
 });

@@ -36,13 +36,7 @@ const multerStorage = multer.diskStorage({
         "../../uploads/category",
         category.imageName
       );
-      fs.unlink(oldFilePath, (err) => {
-        if (err) {
-          console.error("Error deleting old image:", err);
-        } else {
-          console.log("Old image deleted successfully");
-        }
-      });
+      fs.unlink(oldFilePath);
     }
 
     // Iterate through all programs and categories to find categories with the specified slug

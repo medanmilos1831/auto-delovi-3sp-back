@@ -1,7 +1,7 @@
 // Import necessary modules
 const { Router } = require("express");
 const uploadPocetna = require("../multer/pocetnaStorage");
-const fs = require("fs/promises");
+const fs = require("fs");
 const path = require("path");
 const xlsx = require("xlsx"); // Include this if you're using it for handling Excel files
 
@@ -55,12 +55,12 @@ pocetnaRouter.post(
 
 pocetnaRouter.post("/pocetna", async (req, res) => {
   try {
-    const jsonData = await fs.readFile(filePath, "utf8");
+    const jsonData = await fs.readFileSync(filePath, "utf8");
     let aboutData = JSON.parse(jsonData);
     aboutData.headline = req.body.headline ?? null;
     aboutData.desc = req.body.desc ?? null;
     const updatedJsonData = JSON.stringify(aboutData, null, 2);
-    await fs.writeFile(filePath, updatedJsonData, "utf8");
+    await fs.writeFileSync(filePath, updatedJsonData, "utf8");
     res.send("ok");
   } catch (error) {
     res.status(error.code).send(error.message);
@@ -69,9 +69,15 @@ pocetnaRouter.post("/pocetna", async (req, res) => {
 
 pocetnaRouter.get("/pocetna", async (req, res) => {
   try {
-    const jsonData = await fs.readFile(filePath, "utf8");
+    if (!filePath) {
+      throw {
+        code: 502,
+        message: "nema filea",
+      };
+    }
+    const jsonData = await fs.readFileSync(filePath, "utf8");
     let aboutData = JSON.parse(jsonData);
-    let programi = JSON.parse(await fs.readFile(programJson, "utf8"));
+    let programi = JSON.parse(await fs.readFileSync(programJson, "utf8"));
     const programs = [];
 
     // Iterate through all keys in the JSON object
@@ -111,7 +117,7 @@ pocetnaRouter.post(
       const jsonData = xlsx.utils.sheet_to_json(worksheet);
       let oldData;
       try {
-        oldData = JSON.parse(await fs.readFile(programJson, "utf8"));
+        oldData = JSON.parse(await fs.readFileSync(programJson, "utf8"));
       } catch (error) {
         oldData = {}; // If the file does not exist or is empty, use an empty object
       }
@@ -186,7 +192,7 @@ pocetnaRouter.post(
       let newData = createObjectFromData(jsonData);
       newData = preserveImages(newData, oldData);
       const updatedJsonData = JSON.stringify(newData, null, 2);
-      await fs.writeFile(programJson, updatedJsonData, "utf8");
+      await fs.writeFileSync(programJson, updatedJsonData, "utf8");
 
       res.send("ok");
     } catch (error) {

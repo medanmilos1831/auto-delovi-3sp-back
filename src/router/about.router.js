@@ -26,7 +26,6 @@ aboutRouter.post("/about", async (req, res) => {
     await fs.writeFile(filePath, updatedJsonData, "utf8");
     res.send("ok");
   } catch (error) {
-    console.log("eeee", error);
     res.status(422).send("Nesto nije ok"); // Return a 422 status code on error
   }
 });
@@ -40,7 +39,6 @@ aboutRouter.get("/about", async (req, res) => {
     let aboutData = JSON.parse(jsonData);
     res.send(aboutData);
   } catch (error) {
-    console.log("eeee", error);
     res.status(422).send(error); // Return a 422 status code on error
   }
 });

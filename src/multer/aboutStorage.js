@@ -18,13 +18,7 @@ const multerStorage = multer.diskStorage({
         "../../uploads/about",
         jsonArray.imageName
       );
-      fs.unlink(oldFilePath, (err) => {
-        if (err) {
-          console.error("Error deleting old image:", err);
-        } else {
-          console.log("Old image deleted successfully");
-        }
-      });
+      fs.unlink(oldFilePath);
     }
 
     const newImageName = "image" + path.extname(file.originalname);

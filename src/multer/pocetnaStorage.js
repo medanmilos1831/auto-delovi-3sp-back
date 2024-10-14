@@ -2,7 +2,7 @@ const { URL } = require("../constants");
 const multer = require("multer");
 const path = require("path");
 const fs = require("fs");
-const filePath = path.join(__dirname, "../../json/pocetna.json");
+// const filePath = path.join(__dirname, "./../../json/pocetna.json");
 
 const multerStorage = multer.diskStorage({
   destination: (req, file, cb) => {
@@ -10,7 +10,10 @@ const multerStorage = multer.diskStorage({
     cb(null, uploadPath);
   },
   filename: (req, file, cb) => {
-    const jsonData = fs.readFileSync(filePath, "utf8");
+    const jsonData = fs.readFileSync(
+      path.join(__dirname, "./../../json/pocetna.json"),
+      "utf8"
+    );
     let jsonArray = JSON.parse(jsonData);
 
     if (jsonArray.imageName) {
@@ -19,13 +22,7 @@ const multerStorage = multer.diskStorage({
         "../uploads/pocetna",
         jsonArray.imageName
       );
-      fs.unlink(oldFilePath, (err) => {
-        if (err) {
-          console.error("Error deleting old image:", err);
-        } else {
-          console.log("Old image deleted successfully");
-        }
-      });
+      fs.unlink(oldFilePath);
     }
 
     cb(null, "image" + path.extname(file.originalname));
@@ -34,7 +31,11 @@ const multerStorage = multer.diskStorage({
       `${URL}/uploads/pocetna/image` + path.extname(file.originalname);
     jsonArray.imageName = `image${path.extname(file.originalname)}`;
     const updatedJsonData = JSON.stringify(jsonArray, null, 2);
-    fs.writeFileSync(filePath, updatedJsonData, "utf8");
+    fs.writeFileSync(
+      path.join(__dirname, "./../../json/pocetna.json"),
+      updatedJsonData,
+      "utf8"
+    );
   },
 });
 
