@@ -193,8 +193,9 @@ categoryRoute.delete("/category/:id", (req, res) => {
 // GET route to retrieve all categories
 categoryRoute.get("/category", (req, res) => {
   try {
-    const jsonData = fs.readFileSync(filePath, "utf8");
-    let jsonArray = JSON.parse(jsonData);
+    let jsonArray = req.sharedData.program;
+    // const jsonData = fs.readFileSync(filePath, "utf8");
+    // let jsonArray = JSON.parse(jsonData);
 
     function extractUniqueCategoriesWithProgram(jsonData) {
       const uniqueCategories = [];
@@ -243,8 +244,9 @@ categoryRoute.get("/category", (req, res) => {
 // GET route to retrieve products and category details
 categoryRoute.get("/category/:program/:category", (req, res) => {
   try {
-    const jsonData = fs.readFileSync(filePath, "utf8");
-    let jsonArray = JSON.parse(jsonData);
+    let jsonArray = req.sharedData.program;
+    // const jsonData = fs.readFileSync(filePath, "utf8");
+    // let jsonArray = JSON.parse(jsonData);
 
     const program = jsonArray[req.params.program];
     if (!program) {

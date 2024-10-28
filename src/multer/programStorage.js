@@ -32,14 +32,14 @@ const multerStorage = multer.diskStorage({
     cb(null, uniqueSuffix + path.extname(file.originalname));
     const program = findProgramBySlug(req.body.slug);
 
-    if (program && program.imageName) {
-      const oldFilePath = path.join(
-        __dirname,
-        "../uploads/program",
-        program.imageName
-      );
-      fs.unlink(oldFilePath);
-    }
+    // if (program && program.imageName) {
+    //   const oldFilePath = path.join(
+    //     __dirname,
+    //     "../uploads/program",
+    //     program.imageName
+    //   );
+    //   fs.unlink(oldFilePath);
+    // }
 
     // Update imageName and image for the program
     Object.entries(jsonArray).forEach(([programSlug, program]) => {

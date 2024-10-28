@@ -42,8 +42,9 @@ programRouter.post("/program", async (req, res) => {
 
 programRouter.get("/program", async (req, res) => {
   try {
-    const jsonData = fs.readFileSync(filePath, "utf8");
-    let jsonArray = JSON.parse(jsonData);
+    // const jsonData = fs.readFileSync(filePath, "utf8");
+    // let jsonArray = JSON.parse(jsonData);
+    let jsonArray = req.sharedData.program;
     res.send(
       Object.keys(jsonArray).length === 0
         ? []
@@ -106,7 +107,8 @@ programRouter.put("/program/:id", async (req, res) => {
 
 programRouter.get("/program/:program", async (req, res) => {
   try {
-    let jsonArray = JSON.parse(fs.readFileSync(filePath, "utf8"));
+    // let jsonArray = JSON.parse(fs.readFileSync(filePath, "utf8"));
+    let jsonArray = req.sharedData.program;
     if (!jsonArray[req.params.program]) {
       return res.send([]);
     }

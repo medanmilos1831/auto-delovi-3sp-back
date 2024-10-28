@@ -33,12 +33,14 @@ aboutRouter.post("/about", async (req, res) => {
 // GET route to retrieve about information
 aboutRouter.get("/about", async (req, res) => {
   try {
-    const filePath = path.join(__dirname, "../../json/onama.json");
+    console.log("usao u about");
+    // const filePath = path.join(__dirname, "../../json/onama.json");
 
-    const jsonData = await fs.readFile(filePath, "utf8");
-    let aboutData = JSON.parse(jsonData);
-    res.send(aboutData);
+    // const jsonData = await fs.readFile(filePath, "utf8");
+    // let aboutData = JSON.parse(jsonData);
+    res.send(req.sharedData.onama);
   } catch (error) {
+    console.log("GET ABOUT", error);
     res.status(422).send(error); // Return a 422 status code on error
   }
 });

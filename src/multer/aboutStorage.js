@@ -1,4 +1,4 @@
-const { x } = require("../constants");
+const { URL } = require("../constants");
 const multer = require("multer");
 const path = require("path");
 const fs = require("fs");
@@ -6,29 +6,35 @@ const filePath = "../../json/onama.json";
 
 const multerStorage = multer.diskStorage({
   destination: (req, file, cb) => {
-    cb(null, "uploads/about/");
+    const uploadPath = path.join(__dirname, "../../uploads/about/");
+    cb(null, uploadPath);
   },
   filename: (req, file, cb) => {
-    const jsonData = fs.readFileSync(filePath, "utf8");
-    let jsonArray = JSON.parse(jsonData);
+    const jsonArray = req.sharedData.onama;
+    // const jsonData = fs.readFileSync(filePath, "utf8");
+    // let jsonArray = JSON.parse(jsonData);
 
     if (jsonArray.imageName) {
       const oldFilePath = path.join(
         __dirname,
-        "../../uploads/about",
+        "../../uploads/about/",
         jsonArray.imageName
       );
-      fs.unlink(oldFilePath);
+      fs.unlinkSync(oldFilePath);
     }
 
     const newImageName = "image" + path.extname(file.originalname);
     cb(null, newImageName);
 
-    jsonArray.image = `${x.URL}/uploads/about/${newImageName}`;
+    jsonArray.image = `${URL}/uploads/about/${newImageName}`;
     jsonArray.imageName = newImageName;
-
+    req.sharedData.onama = jsonArray;
     const updatedJsonData = JSON.stringify(jsonArray, null, 2);
-    fs.writeFileSync(filePath, updatedJsonData, "utf8");
+    fs.writeFileSync(
+      path.join(__dirname, "./../../json/onama.json"),
+      updatedJsonData,
+      "utf8"
+    );
   },
 });
 

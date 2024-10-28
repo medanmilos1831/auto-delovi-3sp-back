@@ -1,6 +1,6 @@
 {
   "headline": "3sp eeeewew",
-  "image": "https://api.auto-delovi-3sp.com/uploads/about/image.jpg",
+  "image": "http://localhost:3001/uploads/about/image.jpg",
   "imageName": "image.jpg",
   "opis": "This is a sample description for the about section.",
   "items": [

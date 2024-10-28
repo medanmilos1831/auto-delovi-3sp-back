@@ -19,8 +19,9 @@ productRouter.post(
 
 productRouter.get("/product", async (req, res) => {
   try {
-    const jsonData = await fs.readFileSync(filePath, "utf8");
-    let jsonArray = JSON.parse(jsonData);
+    let jsonArray = req.sharedData.program;
+    // const jsonData = await fs.readFileSync(filePath, "utf8");
+    // let jsonArray = JSON.parse(jsonData);
     const uniqueProducts = [];
     const seenProducts = new Map();
 
@@ -81,8 +82,9 @@ productRouter.get("/product", async (req, res) => {
 
 productRouter.get("/product/:program/:category/:product", async (req, res) => {
   try {
-    const jsonData = await fs.readFileSync(filePath, "utf8");
-    let jsonArray = JSON.parse(jsonData);
+    let jsonArray = req.sharedData.program;
+    // const jsonData = await fs.readFileSync(filePath, "utf8");
+    // let jsonArray = JSON.parse(jsonData);
 
     const program = jsonArray[req.params.program];
     if (!program) {
@@ -180,8 +182,9 @@ productRouter.post("/naruci", async (req, res) => {
 productRouter.post("/sync", async (req, res) => {
   try {
     // Čitanje JSON fajla
-    const jsonData = await fsSync.readFileSync(filePath, "utf8");
-    const jsonObject = JSON.parse(jsonData);
+    const jsonObject = req.sharedData.program;
+    // const jsonData = await fsSync.readFileSync(filePath, "utf8");
+    // const jsonObject = JSON.parse(jsonData);
 
     // Iteriranje kroz sve programe i kategorije
     Object.entries(jsonObject).forEach(async ([programSlug, program]) => {
@@ -221,7 +224,7 @@ productRouter.post("/sync", async (req, res) => {
         }
       );
     });
-
+    req.sharedData.program = jsonObject;
     const updatedJsonData = JSON.stringify(jsonObject, null, 2);
     fsSync.writeFileSync(filePath, updatedJsonData, "utf8");
     res.send("ok");
