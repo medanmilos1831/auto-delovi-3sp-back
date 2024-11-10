@@ -140,7 +140,16 @@ programRouter.get("/program/:program", async (req, res) => {
         if (!jsonArray[req.params.program].kategorije) {
           return [];
         }
-        return Object.values(jsonArray[req.params.program].kategorije);
+        const v = Object.values(jsonArray[req.params.program].kategorije);
+        const kategorijeBezProizvoda = Object.values(
+          jsonArray[req.params.program].kategorije
+        ).map((kategorija) => {
+          const { prozivodi, ...rest } = kategorija;
+
+          return rest;
+        });
+
+        return kategorijeBezProizvoda;
       })(),
     });
   } catch (error) {
