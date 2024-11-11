@@ -146,7 +146,10 @@ programRouter.get("/program/:program", async (req, res) => {
         ).map((kategorija) => {
           const { prozivodi, ...rest } = kategorija;
 
-          return rest;
+          return {
+            ...rest,
+            firstId: Object.values(prozivodi)[0].id || null,
+          };
         });
 
         return kategorijeBezProizvoda;

@@ -9,7 +9,6 @@ const pocetnaRouter = Router();
 
 pocetnaRouter.get("/pocetna", async (req, res) => {
   try {
-    console.log("usao u pocetnu");
     const aboutData = req.sharedData.pocetna;
     const programi = req.sharedData.program;
     const programs = [];
