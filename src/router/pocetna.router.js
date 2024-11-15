@@ -2,10 +2,19 @@ const { Router } = require("express");
 const fs = require("fs");
 const path = require("path");
 const xlsx = require("xlsx");
+const pocetnaUpload = require("../multer/pocetnaStorage");
 
 const programJson = path.join(__dirname, "../../json/program.json");
 
 const pocetnaRouter = Router();
+
+pocetnaRouter.post(
+  "/upload-pocetna",
+  pocetnaUpload.single("file"),
+  (req, res) => {
+    res.send("ok");
+  }
+);
 
 pocetnaRouter.get("/pocetna", async (req, res) => {
   try {
@@ -27,7 +36,19 @@ pocetnaRouter.get("/pocetna", async (req, res) => {
       programi: programs,
     });
   } catch (error) {
-    console.log("GET POCETNA", error);
+    res.status(error.code).send(error.message);
+  }
+});
+pocetnaRouter.post("/pocetna", async (req, res) => {
+  try {
+    const jsonArray = req.sharedData.pocetna;
+    const filePath = path.join(__dirname, "../../json/pocetna.json");
+    jsonArray.headline = req.body.headline || jsonArray.headline;
+
+    const updatedJsonData = JSON.stringify(jsonArray, null, 2);
+    await fs.writeFileSync(filePath, updatedJsonData, "utf8");
+    res.send("ok");
+  } catch (error) {
     res.status(error.code).send(error.message);
   }
 });

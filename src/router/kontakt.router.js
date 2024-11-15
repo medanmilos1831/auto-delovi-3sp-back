@@ -18,6 +18,7 @@ kontakRouter.post("/kontakt", async (req, res) => {
     req.sharedData.kontakt.radnimDanima = req.body.radnimDanima || null;
     req.sharedData.kontakt.subotom = req.body.subotom || null;
     req.sharedData.kontakt.nedeljom = req.body.nedeljom || null;
+    req.sharedData.kontakt.kupujemProdajem = req.body.kupujemProdajem || null;
 
     // Write updated data back to JSON file
     const updatedJsonData = JSON.stringify(req.sharedData.kontakt, null, 2);
@@ -31,10 +32,8 @@ kontakRouter.post("/kontakt", async (req, res) => {
 // GET route to retrieve contact information
 kontakRouter.get("/kontakt", async (req, res) => {
   try {
-    console.log("usao u kontakt");
     res.send(req.sharedData.kontakt);
   } catch (error) {
-    console.log("erro u kontakt", error);
     res.status(500).send(error.message); // Return a 500 status code on error
   }
 });

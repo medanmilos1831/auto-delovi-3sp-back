@@ -11,17 +11,6 @@ const multerStorage = multer.diskStorage({
   },
   filename: (req, file, cb) => {
     const jsonArray = req.sharedData.onama;
-    // const jsonData = fs.readFileSync(filePath, "utf8");
-    // let jsonArray = JSON.parse(jsonData);
-
-    if (jsonArray.imageName) {
-      const oldFilePath = path.join(
-        __dirname,
-        "../../uploads/about/",
-        jsonArray.imageName
-      );
-      fs.unlinkSync(oldFilePath);
-    }
 
     const newImageName = "image" + path.extname(file.originalname);
     cb(null, newImageName);

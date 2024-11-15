@@ -4,40 +4,10 @@ const uploadProgram = require("../multer/programStorage");
 const fs = require("fs");
 const path = require("path");
 
-const filePath = path.join(__dirname, "../../json/program.json");
-
 const programRouter = Router();
 
 programRouter.post("/upload", uploadProgram.single("file"), (req, res) => {
   res.send("ok");
-});
-
-programRouter.post("/program", async (req, res) => {
-  try {
-    const jsonData = fs.readFileSync(filePath, "utf8");
-    let jsonArray = JSON.parse(jsonData);
-    let slug = slugify(req.body.naziv, {
-      lower: true,
-      strict: true,
-    });
-    if (jsonArray[slug]) {
-      throw {
-        code: 422,
-        message: "vec postoji program",
-      };
-    }
-    jsonArray[slug] = {
-      ...req.body,
-      slug,
-      kategorije: {},
-    };
-    const updatedJsonData = JSON.stringify(jsonArray, null, 2);
-    fs.writeFileSync(filePath, updatedJsonData, "utf8");
-
-    res.send("ok");
-  } catch (error) {
-    res.status(error.code || 500).send(error.message);
-  }
 });
 
 programRouter.get("/program", async (req, res) => {
@@ -55,51 +25,6 @@ programRouter.get("/program", async (req, res) => {
             });
           })()
     );
-  } catch (error) {
-    res.status(error.code || 500).send(error.message);
-  }
-});
-
-programRouter.delete("/program/:id", async (req, res) => {
-  try {
-    const jsonData = fs.readFileSync(filePath, "utf8");
-    let jsonArray = JSON.parse(jsonData);
-    delete jsonArray[req.params.id];
-    const updatedJsonData = JSON.stringify(jsonArray, null, 2);
-    fs.writeFileSync(filePath, updatedJsonData, "utf8");
-    res.send("ok");
-  } catch (error) {
-    res.status(error.code || 500).send(error.message);
-  }
-});
-
-programRouter.put("/program/:id", async (req, res) => {
-  try {
-    const jsonData = fs.readFileSync(filePath, "utf8");
-    let jsonArray = JSON.parse(jsonData);
-    let slug = slugify(req.body.naziv, {
-      lower: true,
-      strict: true,
-    });
-    if (req.params.id != slug && jsonArray[slug]) {
-      throw {
-        code: 422,
-        message: "vec postoji program",
-      };
-    }
-    jsonArray[slug] = {
-      ...jsonArray[req.params.id],
-      slug,
-      ...req.body,
-    };
-    if (req.params.id != slug) {
-      delete jsonArray[req.params.id];
-    }
-
-    const updatedJsonData = JSON.stringify(jsonArray, null, 2);
-    fs.writeFileSync(filePath, updatedJsonData, "utf8");
-
-    res.send("ok");
   } catch (error) {
     res.status(error.code || 500).send(error.message);
   }
