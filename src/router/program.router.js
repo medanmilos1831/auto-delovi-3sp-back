@@ -12,6 +12,7 @@ programRouter.post("/upload", uploadProgram.single("file"), (req, res) => {
 
 programRouter.get("/program", async (req, res) => {
   try {
+    console.log("eeeee");
     // const jsonData = fs.readFileSync(filePath, "utf8");
     // let jsonArray = JSON.parse(jsonData);
     let jsonArray = req.sharedData.program;
