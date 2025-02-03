@@ -7,13 +7,6 @@ REMOTE_PROJECT_PATH="/root/auto-delovi-3sp-back"
 REMOTE_ZIP_PATH="/root/auto-delovi-3sp-back.zip"
 REMOTE_PASSWORD="autO-delovi-3sp"
 
-# Kompresovanje lokalnog projekta u ZIP fajl
-cd $LOCAL_PROJECT_PATH
-zip -r $LOCAL_ZIP_FILE .
-
-echo "1"
-echo "2: Attempting to SCP file to remote server"
-
 # Kopiranje ZIP fajla na udaljeni server
 sshpass -p $REMOTE_PASSWORD scp -o StrictHostKeyChecking=no $LOCAL_ZIP_FILE $REMOTE_USER@$REMOTE_HOST:$REMOTE_ZIP_PATH
 
@@ -37,18 +30,14 @@ echo "Novi direktorijum auto-delovi-3sp-back je otpakovan"
 # Čišćenje ZIP fajla
 rm -rf /root/auto-delovi-3sp-back.zip
 
-# Instalacija zavisnosti (ako imate zavisnosti)
+# Instalacija zavisnosti
 cd /root/auto-delovi-3sp-back
+npm install
 
-
-# Pokretanje build komande
-
-
-
-# Pokretanje aplikacije koristeći PM2
-cd ..
-pm2 restart
+# Pokretanje aplikacije koristeći PM2 sa ecosystem.config.js fajlom
+pm2 restart ecosystem.config.js --env production
 echo "Aplikacija je pokrenuta."
+
 ENDSSH
 
 # Brisanje lokalnog ZIP fajla
@@ -56,5 +45,3 @@ rm -rf $LOCAL_ZIP_FILE
 echo "Lokalni ZIP fajl je obrisan."
 
 echo "7: Deployment finished!"
-
-
