@@ -40,9 +40,6 @@ rm -rf /root/auto-delovi-3sp-back.zip
 # Instalacija zavisnosti (ako imate zavisnosti)
 cd /root/auto-delovi-3sp-back
 
-cd src
-sed -i 's/PORT: 3001/PORT: 3000/' constants.js
-sed -i 's|URL: "http://localhost:3001"|URL: "https://api.auto-delovi-3sp.com"|' constants.js
 
 # Pokretanje build komande
 

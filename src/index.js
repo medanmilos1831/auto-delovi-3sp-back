@@ -6,47 +6,21 @@ const multer = require("multer");
 const { Router } = require("express");
 const cors = require("cors");
 const prismic = require("@prismicio/client");
-console.log("pera");
-// import * as prismic from "@prismicio/client";
 
-// const programRouter = require("./router/program.router");
-// const categoryRoute = require("./router/category.router");
-// const productRouter = require("./router/product.router");
-// const pocetnaRouter = require("./router/pocetna.router");
-// const kontaktRouter = require("./router/kontakt.router");
-// const aboutRouter = require("./router/about.router");
-const x = require("./constants");
+require("dotenv").config({
+  path: `.env.${process.env.NODE_ENV || "development"}`,
+});
 
 const app = express();
 
 app.use(cors());
 app.use(express.json());
-
-// app.use((req, res, next) => {
-//   req.sharedData = {
-//     kontakt: JSON.parse(
-//       fs.readFileSync(path.join(__dirname, "./../json/kontakt.json"), "utf8")
-//     ),
-//     onama: JSON.parse(
-//       fs.readFileSync(path.join(__dirname, "./../json/onama.json"), "utf8")
-//     ),
-//     pocetna: JSON.parse(
-//       fs.readFileSync(path.join(__dirname, "./../json/pocetna.json"), "utf8")
-//     ),
-//     program: JSON.parse(
-//       fs.readFileSync(path.join(__dirname, "./../json/program.json"), "utf8")
-//     ),
-//   };
-//   next();
-// });
-const writeClient = prismic.createWriteClient("medeni1802", {
-  writeToken:
-    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0eXBlIjoibWFjaGluZTJtYWNoaW5lIiwiZGJpZCI6Im1lZGVuaTE4MDItZWUwOWI4MmItODM0NC00MWFkLWE4MjAtYmRhYTc5YjIzNzgxXzUiLCJkYXRlIjoxNzM3NDY3MDE3LCJkb21haW4iOiJtZWRlbmkxODAyIiwiYXBwTmFtZSI6ImV2ZW50LXN0b3JlIiwiaWF0IjoxNzM3NDY3MDE3fQ.WQ5vcKmAOOefwo3rWB5x8wUKfjUPqAzKuYFUnhiqLn0",
+const writeClient = prismic.createWriteClient(process.env.PRISMIC_SPACE, {
+  writeToken: process.env.PRISMIC_WRITE_TOKEN,
 });
-const client = prismic.createClient("medeni1802", {
+const client = prismic.createClient(process.env.PRISMIC_SPACE, {
   // If your repository is private, add an access token
-  accessToken:
-    "MC5aNC1sSEJJQUFDNEFMSzZ2.77-9Azbvv73vv70u77-977-977-977-977-977-977-9cEbvv70JS--_ve-_ve-_vUEk77-9Wmnvv71W77-9fXRK",
+  accessToken: process.env.PRISMIC_ACCESS_TOKEN,
 });
 
 const storage = multer.memoryStorage();
@@ -227,7 +201,6 @@ zika.post("/pocetna/excel", upload.single("file"), async (req, res) => {
 
 zika.post("/naruci", async (req, res) => {
   try {
-    console.log("reeeeee", req.body);
     const transporter = nodemailer.createTransport({
       service: "gmail",
       auth: {
@@ -295,14 +268,6 @@ zika.post("/naruci", async (req, res) => {
 
 app.use(zika);
 
-// app.use(programRouter);
-// app.use(categoryRoute);
-// app.use(productRouter);
-// app.use(pocetnaRouter);
-// app.use(kontaktRouter);
-// app.use(aboutRouter);
-// app.use("/uploads", express.static(path.join(__dirname, "../uploads")));
-
-app.listen(x.PORT, "0.0.0.0", () => {
-  console.log(`Server is running at http://localhost:${x.PORT}`);
+app.listen(process.env.PORT, "0.0.0.0", () => {
+  console.log(`Server is running at http://localhost:${process.env.PORT}`);
 });
