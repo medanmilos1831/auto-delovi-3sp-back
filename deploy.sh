@@ -50,7 +50,7 @@ sed -i 's|URL: "http://localhost:3001"|URL: "https://api.auto-delovi-3sp.com"|' 
 
 # Pokretanje aplikacije koristeći PM2
 cd ..
-pm2 restart index
+pm2 restart
 echo "Aplikacija je pokrenuta."
 ENDSSH
 
