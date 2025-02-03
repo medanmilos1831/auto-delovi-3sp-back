@@ -1,4 +1,6 @@
-# Definisanje varijabli
+#!/bin/bash
+
+# Definisanje varijabli (ne diram tvoje)
 LOCAL_PROJECT_PATH="/Users/milos/Documents/Workspace/srba-site/auto-delovi-3sp-back"
 LOCAL_ZIP_FILE="/Users/milos/Documents/Workspace/srba-site/auto-delovi-3sp-back.zip"
 REMOTE_USER="root"
@@ -6,6 +8,13 @@ REMOTE_HOST="164.90.211.116"
 REMOTE_PROJECT_PATH="/root/auto-delovi-3sp-back"
 REMOTE_ZIP_PATH="/root/auto-delovi-3sp-back.zip"
 REMOTE_PASSWORD="autO-delovi-3sp"
+
+# Kompresovanje lokalnog projekta u ZIP fajl
+cd $LOCAL_PROJECT_PATH
+zip -r $LOCAL_ZIP_FILE .
+
+echo "1"
+echo "2: Attempting to SCP file to remote server"
 
 # Kopiranje ZIP fajla na udaljeni server
 sshpass -p $REMOTE_PASSWORD scp -o StrictHostKeyChecking=no $LOCAL_ZIP_FILE $REMOTE_USER@$REMOTE_HOST:$REMOTE_ZIP_PATH
