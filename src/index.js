@@ -11,6 +11,8 @@ require("dotenv").config({
   path: `.env.${process.env.NODE_ENV || "development"}`,
 });
 
+console.log("ssssss", process.env.NODE_ENV);
+
 const app = express();
 
 app.use(cors());
