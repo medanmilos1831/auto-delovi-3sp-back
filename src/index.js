@@ -200,7 +200,7 @@ zika.post("/pocetna/excel", upload.single("file"), async (req, res) => {
 });
 
 zika.get("/zika", (req, res) => {
-  res.send("Zdravo, ovo je moja prva ruta u Expressu!");
+  res.send("promena!");
 });
 
 zika.post(`/naruci`, async (req, res) => {
