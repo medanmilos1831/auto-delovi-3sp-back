@@ -199,7 +199,11 @@ zika.post("/pocetna/excel", upload.single("file"), async (req, res) => {
   }
 });
 
-zika.post(`${process.env.DATABASE_URL}/naruci`, async (req, res) => {
+zika.get("/zika", (req, res) => {
+  res.send("Zdravo, ovo je moja prva ruta u Expressu!");
+});
+
+zika.post(`/naruci`, async (req, res) => {
   try {
     const transporter = nodemailer.createTransport({
       service: "gmail",
@@ -267,10 +271,6 @@ zika.post(`${process.env.DATABASE_URL}/naruci`, async (req, res) => {
 });
 
 app.use(zika);
-
-app.get("/zika", (req, res) => {
-  res.send("Zdravo, ovo je moja prva ruta u Expressu!");
-});
 
 app.listen(process.env.PORT, "0.0.0.0", () => {
   console.log(`Server is running at http://localhost:${process.env.PORT}`);
